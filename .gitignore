@@ -1,3 +1,5 @@
 node_modules
 .env
-index.html
+prac.js
+biodata_template.ejs
+biodata.pdf

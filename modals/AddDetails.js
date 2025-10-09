@@ -1,12 +1,18 @@
 import mongoose from "mongoose";
-const adddetails = new mongoose.Schema({
+import { dash } from "pdfkit";
+// const adddetails = new mongoose.Schema({
 
-})
+// })
+
+
+//need to check the Document Section in everything need to add constraints
+
 
 const journalSchema = new mongoose.Schema({
     name: {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     title_of_the_paper:  {
         type:String,
@@ -18,15 +24,20 @@ const journalSchema = new mongoose.Schema({
     },
     page_number:  {
         type:Number,
-        required:true
+        required:true,
+        max:4
     },
     year: {
         type:Number,
-        required:true
+        required:true,
+        max:new Date().getFullYear()
     },
     ISSN_Number:  {
         type:Number,
-        required:true
+        required:true,
+        unique:true,
+        max:9,
+        trim:true
     },
     Impact_Factor:  {
         type:String,
@@ -46,23 +57,29 @@ const journal = mongoose.model("Journal", journalSchema)
 const conferencesSchema = new mongoose.Schema({
     name:  {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     title_of_the_paper:  {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     title_of_conference:  {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     year: {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        min:1900,
+        max:new Date().getFullYear()
     },
-    organized_by:  {
+    organized_by:{
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     national_or_international:  {
         type:Boolean,
@@ -82,15 +99,19 @@ const seminarSchema = new mongoose.Schema({
     },
     title_of_the_paper: {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     title_of_seminar:  {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     year:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        minchar:4,
+        max:new Date().getFullYear()
     },
     organized_by:  {
         type:String,
@@ -110,19 +131,24 @@ const Seminar = mongoose.model("Seminar", seminarSchema)
 const researchSchema = new mongoose.Schema({
     name:  {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     year:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        minchar:4,
+        max:new Date().getFullYear()
     },
     name_of_the_principal_investigator:  {
         type:String,
         required:true
     },
+    //need to do this
     duration_of_project:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        minchar:1
     },
     name_of_research_project:  {
         type:String,
@@ -130,15 +156,18 @@ const researchSchema = new mongoose.Schema({
     },
     fund_recieved:  {
         type:Number,
-        required:true
+        required:true,
+        minchar:2
     },
     name_of_funding_agency:  {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     year_of_sanction:  {
         type:Number,
-        required:true
+        required:true,
+        max:new Date().getFullYear()
     },
     Department_of_recipient:  {
         type:String,
@@ -165,8 +194,9 @@ const certificationSchema = new mongoose.Schema({
         required:true
     },
     duration:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        minchar:1
     },
     certificate:  {
         type:String,
@@ -182,7 +212,8 @@ const bookSchema = new mongoose.Schema({
     },
     title_of_the_book:  {
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
 
     name_of_the_publisher:  {
@@ -190,12 +221,15 @@ const bookSchema = new mongoose.Schema({
         required:true
     },
     year:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        max:new Date().getFullYear()
     },
     ISBN_DOI_number:  {
+        unique:true,
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     national_or_international:  {
         type:Boolean,
@@ -222,12 +256,15 @@ const book_chapterSchema = new mongoose.Schema({
         required:true
     },
     year:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        max:new Date().getFullYear()
     },
     ISBN_DOI_number:  {
         type:String,
-        required:true
+        unique:true,
+        required:true,
+        trim:true
     },
     national_or_international:  {
         type:Boolean,
@@ -255,15 +292,19 @@ const sponsored_projectSchema = new mongoose.Schema({
     },
     amount:  {
         type:Number,
-        required:true
+        required:true,
+        minchar:2
     },
     duration:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        minchar:1
     },
     academic_year:  {
-        type:String,
-        required:true
+        type:Number,
+        required:true,
+        minchar:4,
+        max:new Date().getFullYear()
     },
     certificate:  {
         type:Buffer,

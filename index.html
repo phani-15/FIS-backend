@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Faculty Profile</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <div id="profile">
+    <h2>Dr. Jane Doe</h2>
+    <p>Designation: Professor</p>
+    <p>Department: Computer Science</p>
+    <p>Email: jane.doe@university.edu</p>
+    <p>Qualifications: Ph.D., M.Tech, B.Tech</p>
+  </div>
+
+  <button onclick="downloadPDF()">Download as PDF</button>
+
+  <script>
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Faculty Profile", 20, 20);
+      doc.setFontSize(12);
+
+      doc.text("Name: Dr. Jane Doe", 20, 40);
+      doc.text("Designation: Professor", 20, 50);
+      doc.text("Department: Computer Science", 20, 60);
+      doc.text("Email: jane.doe@university.edu", 20, 70);
+      doc.text("Qualifications: Ph.D., M.Tech, B.Tech", 20, 80);
+
+      doc.save("profile.pdf");
+    }
+  </script>
+</body>
+
+</html>

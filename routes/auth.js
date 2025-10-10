@@ -9,6 +9,6 @@ const router=express.Router()
 router.post("/register",register);
 
 //handle Login
-router.post("/login",login);
+router.post("/login",login)
 
 export default router

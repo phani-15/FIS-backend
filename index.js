@@ -7,6 +7,7 @@ import cors from "cors"
 
 
 import authRoutes from "./routes/auth.js"
+import personalRoutes from "./routes/personal.js"
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(cors())
 
 //routes
 app.use("/api",authRoutes)
+app.use("/api",personalRoutes)
 // app.use("/api",PersonalRoutes)
 
 

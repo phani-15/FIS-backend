@@ -89,7 +89,7 @@ const ConferencesSchema = new mongoose.Schema({
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 const Conference = mongoose.model("Conference", ConferencesSchema)
 
 const SeminarSchema = new mongoose.Schema({
@@ -125,7 +125,7 @@ const SeminarSchema = new mongoose.Schema({
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 const Seminar = mongoose.model("Seminar", SeminarSchema)
 
 const ResearchSchema = new mongoose.Schema({
@@ -177,7 +177,7 @@ const ResearchSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-})
+},{timestamps:true})
 const Research = mongoose.model("Research", ResearchSchema)
 
 const CertificationSchema = new mongoose.Schema({
@@ -202,7 +202,7 @@ const CertificationSchema = new mongoose.Schema({
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 const Certification = mongoose.model("Certification", CertificationSchema)
 
 const BookSchema = new mongoose.Schema({
@@ -239,7 +239,7 @@ const BookSchema = new mongoose.Schema({
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 const Book = mongoose.model("Book", BookSchema)
 
 const BookChapterSchema = new mongoose.Schema({
@@ -274,7 +274,7 @@ const BookChapterSchema = new mongoose.Schema({
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 const BookChapter = mongoose.model("BookChapter", BookChapterSchema)
 
 const SponsoredProjectSchema = new mongoose.Schema({
@@ -310,7 +310,7 @@ const SponsoredProjectSchema = new mongoose.Schema({
         type:Buffer,
         required:true
     },
-})
+},{timestamps:true})
 const Sponsoredproject = mongoose.model("SponsoredProject", SponsoredProjectSchema)
 
 

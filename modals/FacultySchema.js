@@ -5,7 +5,7 @@ const {createHmac} = await import('node:crypto');
 const facultySchema = new mongoose.Schema({
     email : { type: String, required: true, unique: true },
     encry_password : { type: String, required: true },
-    phone : { type: String, required: true},
+    phone : { type: String, required: true,unique:true},
     salt:String
 },{timestamps:true})
 

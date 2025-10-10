@@ -8,7 +8,7 @@ import { dash } from "pdfkit";
 //need to check the Document Section in everything need to add constraints
 
 
-const journalSchema = new mongoose.Schema({
+const JournalSchema = new mongoose.Schema({
     name: {
         type:String,
         required:true,
@@ -52,9 +52,9 @@ const journalSchema = new mongoose.Schema({
         required:true
     }
 })
-const journal = mongoose.model("Journal", journalSchema)
+const Journal = mongoose.model("Journal", JournalSchema)
 
-const conferencesSchema = new mongoose.Schema({
+const ConferencesSchema = new mongoose.Schema({
     name:  {
         type:String,
         required:true,
@@ -90,9 +90,9 @@ const conferencesSchema = new mongoose.Schema({
         required:true
     }
 })
-const Conference = mongoose.model("Conference", conferencesSchema)
+const Conference = mongoose.model("Conference", ConferencesSchema)
 
-const seminarSchema = new mongoose.Schema({
+const SeminarSchema = new mongoose.Schema({
     name:  {
         type:String,
         required:true
@@ -126,9 +126,9 @@ const seminarSchema = new mongoose.Schema({
         required:true
     }
 })
-const Seminar = mongoose.model("Seminar", seminarSchema)
+const Seminar = mongoose.model("Seminar", SeminarSchema)
 
-const researchSchema = new mongoose.Schema({
+const ResearchSchema = new mongoose.Schema({
     name:  {
         type:String,
         required:true,
@@ -178,9 +178,9 @@ const researchSchema = new mongoose.Schema({
         required:true
     },
 })
-const Research = mongoose.model("Research", researchSchema)
+const Research = mongoose.model("Research", ResearchSchema)
 
-const certificationSchema = new mongoose.Schema({
+const CertificationSchema = new mongoose.Schema({
     name:  {
         type:String,
         required:true
@@ -203,9 +203,9 @@ const certificationSchema = new mongoose.Schema({
         required:true
     }
 })
-const Certification = mongoose.model("Certification", certificationSchema)
+const Certification = mongoose.model("Certification", CertificationSchema)
 
-const bookSchema = new mongoose.Schema({
+const BookSchema = new mongoose.Schema({
     name:  {
         type:String,
         required:true
@@ -240,9 +240,9 @@ const bookSchema = new mongoose.Schema({
         required:true
     }
 })
-const Book = mongoose.model("Book", bookSchema)
+const Book = mongoose.model("Book", BookSchema)
 
-const book_chapterSchema = new mongoose.Schema({
+const BookChapterSchema = new mongoose.Schema({
     name:  {
         type:String,
         required:true
@@ -275,9 +275,9 @@ const book_chapterSchema = new mongoose.Schema({
         required:true
     }
 })
-const BookChapter = mongoose.model("BookChapter", book_chapterSchema)
+const BookChapter = mongoose.model("BookChapter", BookChapterSchema)
 
-const sponsored_projectSchema = new mongoose.Schema({
+const SponsoredProjectSchema = new mongoose.Schema({
     name:  {
         type:String,
         required:true
@@ -311,11 +311,11 @@ const sponsored_projectSchema = new mongoose.Schema({
         required:true
     },
 })
-const Sponsoredproject = mongoose.model("SponsoredProject", sponsored_projectSchema)
+const Sponsoredproject = mongoose.model("SponsoredProject", SponsoredProjectSchema)
 
 
 module.exports = {
-    journal,
+    Journal,
     Conference,
     Seminar,
     Research,

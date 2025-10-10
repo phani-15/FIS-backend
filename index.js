@@ -1,14 +1,39 @@
+import 'dotenv/config'
 import express from "express";
+import bodyParser from "body-parser";
+import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+import cors from "cors"
+
+
+import authRoutes from "./routes/auth.js"
+
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Welcome to the Faculty Profile PDF Generator!");
-});
+mongoose.connect(process.env.DATABASE, {
+
+}).then(() => {
+  console.log("DB Connected");
+})
+
+//middleWares
+app.use(bodyParser.json())
+app.use(cookieParser())
+app.use(cors())
+
+//routes
+app.use("/api",authRoutes)
+// app.use("/api",PersonalRoutes)
+
+
 
 //hey vinay common 
+app.get('/',(req,res)=>{
+  res.send("hello from the Db")
+})
 
 // app.get("/download-profile", (req, res) => {
-  
+
 //   const faculty = {
 //     name: "Dr. Jane Doe",
 //     designation: "Professor",
@@ -36,6 +61,6 @@ app.get("/", (req, res) => {
 //   doc.end();
 // });
 
-const port=process.env.port || 3000
+const port = process.env.port || 5000
 
 app.listen(port, () => console.log(`Server running on port ${port}`));

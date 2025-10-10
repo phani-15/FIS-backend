@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const personalSchema = new mongoose.Schema({
-    userId: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Faculty",
         required: true,
@@ -39,6 +39,6 @@ const personalSchema = new mongoose.Schema({
             specialization: { type: String, required: true }
         }
     }
-})
+},{timestamps:true})
 
 export default mongoose.model("Personal", personalSchema);

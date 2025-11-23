@@ -37,8 +37,37 @@ const personalSchema = new mongoose.Schema({
             year: { type: String, required: true },
             institue: { type: String, required: true, trim: true },
             specialization: { type: String, required: true }
+        },
+        phd:[{
+                specialization: {type:String},
+                under_the_proffessor: {type:String},
+                department: {type:String,minchar:2},
+                University: {type:String,minchar:4},
+                year : {type:Number,max:new Date().getFullYear(),minchar:4} 
+
+        }]
+    },
+    experience_data:[
+        {
+            institute: {type:String,minchar:4},
+            designation: {type:String,minchar:2}, 
+            from: {type:Number,min:1947}, 
+            to: {type:Number,max:new Date().getFullYear()}, 
+            certificate: {type:String}
         }
-    }
+    ],
+    administrative_Service:[{
+        designation: {type:String,minchar:2}, 
+        from: {type:Number,min:1947}, 
+        to: {type:Number,max:new Date().getFullYear()}
+    }],
+    other_administrative_service:[{
+         institute: {type:String,minchar:4}, 
+         designation: {type:String,minchar:2}, 
+         from: {type:Number,min:1947}, 
+         to: {type:String,max:new Date().getFullYear()} 
+    }]
+
 },{timestamps:true})
 
 export default mongoose.model("Personal", personalSchema);

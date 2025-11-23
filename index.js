@@ -12,9 +12,11 @@ import personalRoutes from "./routes/personal.js"
 const app = express();
 
 mongoose.connect(process.env.DATABASE, {
-
 }).then(() => {
   console.log("DB Connected");
+}).catch(err=>{
+  console.log("error occured in connecting to DB ");
+  
 })
 
 //middleWares

@@ -15,34 +15,34 @@ const personalSchema = new mongoose.Schema({
     marital: { type: String, required: true },
     education: {
         Tenth: {
-            score: { type: String, required: true },
+            score: { type: String },
             year: { type: String, required: true },
             institue: { type: String, required: true, trim: true }
         },
         Twelth: {
-            score: { type: String, required: true },
+            score: { type: String },
             year: { type: String, required: true },
             institue: { type: String, required: true, trim: true }
         },
         Graduation: {
-            score: { type: String, required: true },
+            score: { type: String},
             Degree: { type: String, required: true },
             year: { type: String, required: true },
             institue: { type: String, required: true, trim: true },
             specialization: { type: String, required: true }
         },
         PostGraduation: {
-            score: { type: String, required: true },
+            score: { type: String },
             Degree: { type: String, required: true },
             year: { type: String, required: true },
             institue: { type: String, required: true, trim: true },
             specialization: { type: String, required: true }
         },
         phd:[{
-                specialization: {type:String},
+                specialization: {type:String,required:true},
                 under_the_proffessor: {type:String},
-                department: {type:String,minchar:2},
-                University: {type:String,minchar:4},
+                department: {type:String,minchar:2 }, 
+                University: {type:String,minchar:4,required:true},
                 year : {type:Number,max:new Date().getFullYear(),minchar:4} 
 
         }]
@@ -52,8 +52,7 @@ const personalSchema = new mongoose.Schema({
             institute: {type:String,minchar:4},
             designation: {type:String,minchar:2}, 
             from: {type:Number,min:1947}, 
-            to: {type:Number,max:new Date().getFullYear()}, 
-            certificate: {type:String}
+            to: {type:Number,max:new Date().getFullYear()},
         }
     ],
     administrative_Service:[{

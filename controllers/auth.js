@@ -83,30 +83,32 @@
     }
 
 
-    //this needs to be seen another time !!
-    const transporter = createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.EMAIL_PASSWORD
-        }
-    })
+//this needs to be seen another time !!
+const transporter = createTransport({
+    service: "gmail",
+    auth: {
+        user:`${process.env.EMAIL}`,
+        pass: `${process.env.EMAIL_PASSWORD}`
+    }
+})
 
-    export const sendmail = async (email, verificationEmail) => {
-        const sendingDescription = {
-            from: process.env.EMAIL,
-            to: email,
-            subject: "Regarding the Testing purpose",
-            html: `
-                <p>Thank you for signing up! Please click the link below to verify your email and activate your account:</p>
-                <a href="${verificationEmail}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
-                    Verify Email Now
-                </a>
-                <p>The link is valid for 1 hour.</p>
-            `,
-        }
-        try {
-            await transporter.sendMail(sendingDescription)
+export const sendmail = async (req,res) => {
+    const {email}=req.body
+    const sendingDescription = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Regarding the Testing purpose from vinay",
+        html: `
+            <p>Thank you for signing up! Please click the link below to verify your email and activate your account:</p>
+            <a href="" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+                Verify Email Now
+            </a>
+            <p>The link is valid for 1 hour.</p>
+        `,
+    }
+    try {
+        await transporter.sendMail(sendingDescription).then(em=>console.log(em)
+        )
 
         } catch (error) {
             res.json({

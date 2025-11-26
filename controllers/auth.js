@@ -1,5 +1,8 @@
 import FacultySchema from "../modals/FacultySchema.js"
 import PersonalSchema from "../modals/PersonalSchema.js"
+import AdminSchema from "../modals/admin.js"
+import IqacSchema from "../modals/Iqac.js"
+import HodSchema from "../modals/hod.js"
 import { validationResult } from "express-validator"
 import jwt from "jsonwebtoken"
 import { expressjwt } from "express-jwt";
@@ -55,6 +58,65 @@ export const login = async (req, res) => {
         token, user: {
             id: user._id,
             email,
+            password
+        }
+    })
+}
+export const adminlogin = async (req, res) => {
+    const { passCode} = req.body
+    const Admin = await AdminSchema.findOne({ passCode})
+    const Iqac = await IqacSchema.findOne({ passCode })
+
+    if (!Admin) {
+        return res.status(400).json({
+            error: "No member with this Credentials are found !"
+        })
+    }
+    const token = jwt.sign({ _id: Admin._id }, process.env.SECRET, { algorithm: 'HS256' })
+    res.cookie("token", token, { expire: new Date() + 99999 })
+
+    return res.json({
+        token, Admin: {
+            id: Admin._id,
+            passCode
+        }
+    })
+}
+export const Iqaclogin = async (req, res) => {
+    const { passCode} = req.body
+    const Iqac = await IqacSchema.findOne({ passCode })
+
+    if (!Iqac) {
+        return res.status(400).json({
+            error: "No member with this Credentials are found !"
+        })
+    }
+    const token = jwt.sign({ _id: Iqac._id }, process.env.SECRET, { algorithm: 'HS256' })
+    res.cookie("token", token, { expire: new Date() + 99999 })
+
+    return res.json({
+        token, Iqac: {
+            id: Iqac._id,
+            passCode
+        }
+    })
+}
+
+export const hodlogin= async (req, res) => {
+    const {department, password } = req.body
+    const user = await HodSchema.findOne({ email })
+    if (!user) {
+        return res.status(400).json({
+            error: "No member with this Credentials are found !"
+        })
+    }
+    const token = jwt.sign({ _id: user._id }, process.env.SECRET, { algorithm: 'HS256' })
+    res.cookie("token", token, { expire: new Date() + 99999 })
+
+    return res.json({
+        token, user: {
+            id: user._id,
+            department,
             password
         }
     })

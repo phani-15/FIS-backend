@@ -117,95 +117,138 @@ export const sendmail = async (req,res) => {
         }
 
     }
+// Store OTP and expiry temporarily (NOT in database)
+const otpStore = new Map();
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email) {
+    if (!email)
       return res.status(400).json({ error: "Email is required" });
-    }
 
-    // 1️⃣ Check if user exists
-    const user = await FacultySchema.findOne({ email }).then(console.log("user  found !!")
-    )
-    
+    const user = await FacultySchema.findOne({ email });
+    if (!user)
+      return res.json({ message: "User not registered" });
 
-    // ✅ Do NOT reveal if email exists — security measure
-    if (!user) {
-      return res.json({ message: "user need to  register" });
-    }
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 2️⃣ Generate reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    // Generate unique token for this OTP session
+    const otpToken = crypto.randomBytes(20).toString("hex");
 
-    // 3️⃣ Hash token before saving to DB
-    user.resetPasswordToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
+    // Save in memory
+    otpStore.set(otpToken, {
+      email,
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
 
-    // 4️⃣ Token expires in 15 min
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
-
-    await user.save().then (console.log("user savd succefully !!")
-    ).catch(err=>console.log(err))
-
-    // 5️⃣ URL that frontend reset page will handle
-    const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-
-    // 6️⃣ Send reset email
+    // Send email
     await transporter.sendMail({
       from: process.env.EMAIL,
       to: email,
-      subject: "Password Reset - Faculty Information System",
+      subject: "Password Reset OTP - Faculty Information System",
       html: `
-        <p>You requested a password reset.</p>
-        <p>Click the link below to reset your password:</p>
-        <a href="${resetURL}" style="display:inline-block;padding:10px 20px;background:#007bff;color:white;text-decoration:none;border-radius:5px;">
-          Reset Password
-        </a>
-        <p>This link expires in 15 minutes.</p>
-      `,
-    })
+        <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; color: #333;">
+    <h2 style="color: #0056b3;">Faculty Information System</h2>
+
+    <p>Dear User,</p>
+
+    <p>
+      We received a request to reset the password for your
+      <strong>Faculty Information System</strong> account. 
+      To proceed with resetting your password, please use the One-Time Password (OTP) provided below:
+    </p>
+
+    <div style="background: #f4f6f9; padding: 15px; border-left: 4px solid #0056b3; margin: 20px 0;">
+      <h1 style="letter-spacing: 5px; font-size: 32px; margin: 0; text-align: center;">
+        ${otp}
+      </h1>
+    </div>
+
+    <p>
+      This OTP is valid for <strong>10 minutes</strong>. 
+      Do not share it with anyone. For security reasons, the OTP will expire automatically.
+    </p>
+
     
 
-    return res.json({ message: "Password reset link sent to email!" ,user});
+    <br />
+
+    <p>Regards,<br>
+    <strong>Faculty Information System Support Team</strong></p>
+
+    <hr style="margin-top: 30px;">
+    <small style="color: #777;">
+      This is an automated message. Please do not reply to this email.
+    </small>
+  </div>
+      `
+    });
+
+    return res.json({
+      message: "OTP sent successfully",
+      otpToken,   // ⬅️ frontend will use this instead of email
+    });
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
+  }
+};
+export const verifyOTP = async (req, res) => {
+  try {
+    const { otpToken, otp } = req.body;
+
+    if (!otpToken || !otp)
+      return res.status(400).json({ error: "OTP token and OTP are required" });
+
+    const data = otpStore.get(otpToken);
+
+    if (!data)
+      return res.status(400).json({ error: "OTP not generated or expired session" });
+
+    if (data.expiresAt < Date.now())
+      return res.status(400).json({ error: "OTP expired" });
+
+    if (data.otp !== otp)
+      return res.status(400).json({ error: "Invalid OTP" });
+
+    return res.json({
+      message: "OTP verified successfully",
+      email: data.email,  // ⬅️ frontend now gets email automatically
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 export const resetPassword = async (req, res) => {
-    const { token } = req.params;
-    const { password } = req.body;
+  try {
+    const { otpToken, password } = req.body;
 
-    if (!password || !token){
-        return res.status(400).json({ error: "Password is required" });
-    }
-   
-    try {
-        const user = await FacultySchema.findOne({
-            resetPasswordExpires: { $gt: Date.now() } ,// token not expired
-             resetPasswordToken: token
-        }).then(console.log("user found for resetting password !!"))
-        .catch(err=>console.log(err));
+    if (!otpToken || !password)
+      return res.status(400).json({ error: "Missing fields" });
 
-        if (!user)
-            return res.status(400).json({ error: "Invalid or expired reset token" });
+    const data = otpStore.get(otpToken);
+    if (!data)
+      return res.status(400).json({ error: "Invalid session" });
 
-        // ✅ Set new password using virtual field
-        user.password = password;
+    const user = await FacultySchema.findOne({ email: data.email });
+    if (!user)
+      return res.status(400).json({ error: "User not found" });
 
-        // ✅ Remove reset fields
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
+    user.password = password;
+    await user.save();
 
-        await user.save();
+    // Clear OTP session
+    otpStore.delete(otpToken);
 
-        return res.json({ msg: "Password reset successful! Please login." });
+    return res.json({ message: "Password reset successful!" });
 
-    } catch (error) {
-        return res.status(500).json({ error: "Server error" });
-    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
 };

@@ -9,6 +9,7 @@ const facultySchema = new mongoose.Schema({
     salt: String,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+      
     
 },{timestamps:true})
 

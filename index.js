@@ -4,8 +4,6 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors"
-
-
 import authRoutes from "./routes/auth.js"
 import personalRoutes from "./routes/personal.js"
 

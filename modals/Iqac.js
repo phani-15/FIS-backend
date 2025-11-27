@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const iqacSchema=new mongoose.Schema({
-    passCode:{type:String,required:true,unique:true,minchar:1}
+    passCode:{type:String,required:true,minchar:8}
 })
 
 iqacSchema.method({

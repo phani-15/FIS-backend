@@ -6,6 +6,7 @@ const personalSchema = new mongoose.Schema({
         ref: "Faculty",
         required: true,
     },
+    personalData:{
     DOB: { type: Date, required: true },
     college: {type:String ,enum: ["University College of Engineering", "College of PharmaCeutical Sciences"], required: true },
     department: { type: String, required: true },
@@ -15,6 +16,7 @@ const personalSchema = new mongoose.Schema({
     marital: { type: String, required: true },
     name: { type: String, required: true },
     profile: { type: String, required: true },
+    },
     education: {
         tenth: {
             percentage: { type: String, required: true },
@@ -45,9 +47,9 @@ const personalSchema = new mongoose.Schema({
             year: { type: String, required: true },
         },
         phd: [{
-            University: { type: String, minchar: 4 },
+            University: { type: String, minchar: 4 ,required:true},
             department: { type: String, minchar: 2 },
-            specialization: { type: String },
+            specialization: { type: String ,required:true},
             under_the_proffessor: { type: String },
             year: { type: Number, max: new Date().getFullYear(), minchar: 4 }
 
@@ -59,7 +61,7 @@ const personalSchema = new mongoose.Schema({
             year: { type: Number, max: new Date().getFullYear(), minchar: 4 }
         }]
     },
-    experience_data: [
+    experience: [
         {
             designation: { type: String, minchar: 2 },
             institute: { type: String, minchar: 4 },
@@ -67,12 +69,12 @@ const personalSchema = new mongoose.Schema({
             to: { type: Number, max: new Date().getFullYear() },
         }
     ],
-    administrative_Service: [{
+    administrativeService: [{
         designation: { type: String, minchar: 2 },
         from: { type: Number, min: 1947 },
         to: { type: Number, max: new Date().getFullYear() }
     }],
-    other_administrative_service: [{
+    otherAdministrativeService: [{
         designation: { type: String, minchar: 2 },
         institute: { type: String, minchar: 4 },
         from: { type: Number, min: 1947 },

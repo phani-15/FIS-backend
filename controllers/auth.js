@@ -3,15 +3,14 @@ import PersonalSchema from "../modals/PersonalSchema.js"
 import AdminSchema from "../modals/admin.js"
 import IqacSchema from "../modals/Iqac.js"
 import HodSchema from "../modals/hod.js"
-import { validationResult } from "express-validator"
 import jwt from "jsonwebtoken"
 import { expressjwt } from "express-jwt";
 import { createTransport } from "nodemailer"
 
-    export const register = async (req, res) => {
+export const register = async (req, res) => {
         try {
-            const { email, password, phone, ...registrationDetails } = req.body
-            const faculty = new FacultySchema({ email, password, phone })
+            const { loginData , ...registrationDetails } = req.body
+            const faculty = new FacultySchema(loginData)
             await faculty.save()
             .then(res=>{console.log("succesfully saved faculty !!");
             })
@@ -36,7 +35,16 @@ import { createTransport } from "nodemailer"
         }
 
     }
-
+//check user during registration middleware
+export const checkUser=async (req,res,next)=>{
+  const {email,phone}=req.body
+  if (await FacultySchema.findOne(email) || await FacultySchema.findOne(phone)) {
+    return res.status(400).json({
+      error:" user with the given credentials exist go to sign in "
+    })
+  }
+  next()
+}
     export const login = async (req, res) => {
         const { email, password } = req.body
         const user = await FacultySchema.findOne({ email })
@@ -312,3 +320,4 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+

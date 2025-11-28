@@ -34,34 +34,34 @@ app.get('/',(req,res)=>{
   res.send("hello from the Db")
 })
 
-// app.get("/download-profile", (req, res) => {
+app.get("/download-profile", (req, res) => {
 
-//   const faculty = {
-//     name: "Dr. Jane Doe",
-//     designation: "Professor",
-//     department: "Computer Science",
-//     email: "jane.doe@university.edu",
-//     qualifications: "Ph.D., M.Tech, B.Tech",
-//   };
+  const faculty = {
+    name: "Dr. Jane Doe",
+    designation: "Professor",
+    department: "Computer Science",
+    email: "jane.doe@university.edu",
+    qualifications: "Ph.D., M.Tech, B.Tech",
+  };
 
-//   // Create PDF
-//   const doc = new PDFDocument();
-//   res.setHeader("Content-Type", "application/pdf");
-//   res.setHeader("Content-Disposition", "attachment; filename=profile.pdf");
+  // Create PDF
+  const doc = new PDFDocument();
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=profile.pdf");
 
-//   doc.pipe(res);
+  doc.pipe(res);
 
-//   doc.fontSize(20).text("Faculty Profile", { align: "center" });
-//   doc.moveDown();
+  doc.fontSize(20).text("Faculty Profile", { align: "center" });
+  doc.moveDown();
 
-//   doc.fontSize(14).text(`Name: ${faculty.name}`);
-//   doc.text(`Designation: ${faculty.designation}`);
-//   doc.text(`Department: ${faculty.department}`);
-//   doc.text(`Email: ${faculty.email}`);
-//   doc.text(`Qualifications: ${faculty.qualifications}`);
+  doc.fontSize(14).text(`Name: ${faculty.name}`);
+  doc.text(`Designation: ${faculty.designation}`);
+  doc.text(`Department: ${faculty.department}`);
+  doc.text(`Email: ${faculty.email}`);
+  doc.text(`Qualifications: ${faculty.qualifications}`);
 
-//   doc.end();
-// });
+  doc.end();
+});
 
 const port = process.env.port || 5000
 

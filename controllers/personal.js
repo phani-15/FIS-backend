@@ -3,7 +3,9 @@ import PersonalSchema from "../modals/PersonalSchema.js"
 import mongoose from 'mongoose';
 
 export const getUserById = (req, res, next, id) => {
-    FacultySchema.findById(id)
+    console.log(id);
+    
+    PersonalSchema.findOne({user:id})
         .exec()
         .then(user => {
             if (!user) {

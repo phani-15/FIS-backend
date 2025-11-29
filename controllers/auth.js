@@ -45,7 +45,7 @@ export const checkUser=async (req,res,next)=>{
   }
   next()
 }
-    export const login = async (req, res) => {
+export const login = async (req, res) => {
         const { email, password } = req.body
         const user = await FacultySchema.findOne({ email })
         if (!user) {
@@ -130,18 +130,20 @@ export const hodlogin= async (req, res) => {
     })
 }
 
-    export const signout = (req, res) => {
+export const signout = (req, res) => {
         res.clearCookie("token")
     }
 
-    export const isSignedIn = expressjwt({
+export const isSignedIn = expressjwt({
         secret: process.env.SECRET,
         userProperty: "auth",
         algorithms: ["HS256"]
     })
 
-    export const isAuthenticated = (req, res, next) => {
-        const checker = req.profile && req.auth && req.profile._id.toString() == req.auth._id
+export const isAuthenticated = (req, res, next) => {  
+  // console.log(req.profile._id.toString === req.auth._id);
+  
+        const checker = req.profile && req.auth && req.profile.user.toString() == req.auth._id
         if (!checker) {
             return res.status(400).json({
                 error: "You are not Authenticated !"
@@ -150,6 +152,10 @@ export const hodlogin= async (req, res) => {
         next()
     }
 
+
+export const isAdmin=(req,res,next)=>{
+  
+}
 
 //this needs to be seen another time !!
 const transporter = createTransport({

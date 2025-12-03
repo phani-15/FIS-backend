@@ -47,7 +47,7 @@ export const checkUser=async (req,res,next)=>{
 }
 export const login = async (req, res) => {
         const { email, password } = req.body
-        const user = await FacultySchema.findOne({ email })
+        const user = await FacultySchema.findOne({email})
         if (!user) {
             return res.status(400).json({
                 error: "No member with this Credentials are found !"

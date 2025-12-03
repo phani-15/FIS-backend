@@ -15,7 +15,7 @@ const personalSchema = new mongoose.Schema({
     gender: { type: String, required: true },
     marital: { type: String, required: true },
     name: { type: String, required: true },
-    profile: { type: String, required: true },
+    profile: { type: Buffer, required: true },
     },
     education: {
         tenth: {

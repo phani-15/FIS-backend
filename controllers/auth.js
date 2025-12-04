@@ -8,33 +8,50 @@ import { expressjwt } from "express-jwt";
 import { createTransport } from "nodemailer"
 
 export const register = async (req, res) => {
-        try {
-            const { loginData , ...registrationDetails } = req.body
-            const faculty = new FacultySchema(loginData)
-            await faculty.save()
-            .then(res=>{console.log("succesfully saved faculty !!");
-            })
-            .catch(err=>console.log(err))
-            const personalSchema = new PersonalSchema({
-                user: faculty._id,
-                ...registrationDetails
-            })
-            await personalSchema.save()
-            .then(console.log("success")    
-            )
-            .catch(err=>console.log(err)
-            )
-            return res.json({
-                msg: "registration Succesfull !!",
-                personalSchema
-            })
-        } catch (error) {
-            return res.status(400).json({
-                error: "there is an error occured in saving into personal"
-            })
-        }
+  try {
+    const { loginData, ...registrationDetails } = req.body;
 
-    }
+    // Save faculty
+    const faculty = new FacultySchema(loginData);
+    await faculty.save();
+    console.log("Successfully saved faculty !!");
+
+    // Save personal info
+    const personalSchema = new PersonalSchema({
+      user: faculty._id,
+      ...registrationDetails
+    });
+    await personalSchema.save();
+    console.log("Personal info saved successfully");
+
+    // Generate JWT token
+    const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, { algorithm: "HS256" });
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Send response
+    return res.json({
+      msg: "Registration Successful!!",
+      user: {
+        id: faculty._id,
+        email: faculty.email
+      }
+    });
+
+  } catch (error) {
+    console.error("Error during registration:", error);
+    return res.status(400).json({
+      error: "There was an error saving data"
+    });
+  }
+};
+
 //check user during registration middleware
 export const checkUser=async (req,res,next)=>{
   const {email,phone}=req.body
@@ -60,15 +77,21 @@ export const login = async (req, res) => {
             })
         }
         const token = jwt.sign({ _id: user._id }, process.env.SECRET, { algorithm: 'HS256' })
-        res.cookie("token", token, { expire: new Date() + 99999 })
+        res.cookie("token", token, {
+  httpOnly: true,
+  secure: true,         // must be true in production, but works on localhost with chrome flags
+  sameSite: "none",     // required for cross-site cookies
+  maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
+});
 
-    return res.json({
-        token, user: {
-            id: user._id,
-            email,
-            password
-        }
-    })
+
+  return res.json({
+  message: "Login successful",
+  user: {
+    id: user._id,
+    email: user.email
+  }
+});
 }
 export const adminlogin = async (req, res) => {
     const { passCode} = req.body

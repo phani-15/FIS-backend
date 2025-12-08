@@ -17,10 +17,19 @@ mongoose.connect(process.env.DATABASE)
 // ---------------- MIDDLEWARES ----------------
 
 // ❗ IMPORTANT: CORS must allow credentials + your frontend origin
+const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
 app.use(cors({
-  origin: "http://localhost:3000",   // Your React app URL
-  credentials: true                  // Allow cookies to be sent/received
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true); // allow non-browser tools like Postman
+    if(allowedOrigins.indexOf(origin) === -1){
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
 }));
+
 
 app.use(bodyParser.json());
 app.use(cookieParser());

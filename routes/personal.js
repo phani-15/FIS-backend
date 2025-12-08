@@ -13,6 +13,7 @@ router.get("/personal/:userId",isSignedIn,isAuthenticated,getDeatils)
 
 
 
+
 router.get('/users/all', getAllUsers);
 
 export default router

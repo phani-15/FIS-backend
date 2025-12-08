@@ -70,6 +70,7 @@ export const login = async (req, res) => {
         }
     })
 }
+
 export const adminlogin = async (req, res) => {
     const { passCode} = req.body
     const Admin = await AdminSchema.findOne({ passCode})

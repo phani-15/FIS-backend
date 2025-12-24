@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
+import HodRoutes from "./routes/hod.js"
 import personalRoutes from "./routes/personal.js";
 
 const app = express();
@@ -37,6 +38,7 @@ app.use(cookieParser());
 // ---------------- ROUTES ----------------
 app.use("/api", authRoutes);
 app.use("/api", personalRoutes);
+app.use("/api", HodRoutes);
 
 // Test route
 app.get("/", (req, res) => {

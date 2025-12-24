@@ -52,6 +52,43 @@ export const register = async (req, res) => {
     });
   }
 };
+export const hodregister = async (req, res) => {
+  try {
+    const { email,department,password } = req.body;
+
+    // Save faculty
+    const faculty = await HodSchema.create({email,department,password});
+    console.log(faculty);
+    
+    console.log("Successfully saved HOD !!");
+    // Generate JWT token
+    const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
+      algorithm: "HS256",
+    });
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Send response
+    return res.json({
+      msg: "Registration Successful!!",
+      user: {
+        id: faculty._id,
+        email: faculty.email,
+      },
+    });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    return res.status(400).json({
+      error: "There was an error saving data",
+    });
+  }
+};
 
 //check user during registration middleware
 export const checkUser = async (req, res, next) => {
@@ -146,11 +183,16 @@ export const Iqaclogin = async (req, res) => {
 
 export const hodlogin = async (req, res) => {
   const { department, password } = req.body;
-  const user = await HodSchema.findOne({ email });
+  const user = await HodSchema.findOne({ department });
   if (!user) {
     return res.status(400).json({
       error: "No member with this Credentials are found !",
     });
+  }
+  if(!user.authenticate(password)){
+    return res.status(400).json({
+      error:"passoword didnt match"
+    })
   }
   const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
     algorithm: "HS256",
@@ -160,9 +202,7 @@ export const hodlogin = async (req, res) => {
   return res.json({
     token,
     user: {
-      id: user._id,
-      department,
-      password,
+      id: user._id
     },
   });
 };
@@ -180,6 +220,19 @@ export const isSignedIn = expressjwt({
 export const isAuthenticated = (req, res, next) => {
   // console.log(req.profile._id.toString === req.auth._id);
   const checker = req.profile && req.auth && req.profile.user._id.toString() == req.auth._id;
+  if (!checker) {
+    return res.status(400).json({
+      error: "You are not Authenticated !",
+    });
+  }
+  next();
+};
+export const isHodAuthenticated = (req, res, next) => {
+  // Ensure both IDs are compared as strings
+  console.log(req.auth);
+  
+  const checker = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
+
   if (!checker) {
     return res.status(400).json({
       error: "You are not Authenticated !",

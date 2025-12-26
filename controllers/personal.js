@@ -3,10 +3,10 @@ import PersonalSchema from "../modals/PersonalSchema.js"
 import mongoose from 'mongoose';
 
 export const getUserById = (req, res, next, id) => {
-    console.log(id);
+    console.log("id is:",id);
     
     PersonalSchema.findOne({user:id})
-        .exec()
+        .populate("user")
         .then(user => {
             if (!user) {
                 return res.status(404).json({

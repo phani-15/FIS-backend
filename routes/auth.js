@@ -1,6 +1,6 @@
 import express from "express"
 import {check} from "express-validator"
-import {login,register,sendmail,adminlogin,hodlogin} from "../controllers/auth.js"
+import {login,register,sendmail,adminlogin,hodlogin,hodregister} from "../controllers/auth.js"
 import { defaultArgs } from "puppeteer";
 import { forgotPassword } from "../controllers/auth.js";
 import { resetPassword } from "../controllers/auth.js";
@@ -9,6 +9,7 @@ const router=express.Router()
 
 //handlle Register
 router.post("/register",register);
+router.post("/hodregister",hodregister);
 router.post("/login",login)
 router.post("/admin",adminlogin)
 router.post("/iqac",adminlogin)

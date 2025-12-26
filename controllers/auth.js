@@ -1,209 +1,291 @@
-import FacultySchema from "../modals/FacultySchema.js"
-import PersonalSchema from "../modals/PersonalSchema.js"
-import AdminSchema from "../modals/admin.js"
-import IqacSchema from "../modals/Iqac.js"
-import HodSchema from "../modals/hod.js"
-import jwt from "jsonwebtoken"
+import FacultySchema from "../modals/FacultySchema.js";
+import PersonalSchema from "../modals/PersonalSchema.js";
+import AdminSchema from "../modals/admin.js";
+import IqacSchema from "../modals/Iqac.js";
+import HodSchema from "../modals/hod.js";
+import jwt from "jsonwebtoken";
 import { expressjwt } from "express-jwt";
-import { createTransport } from "nodemailer"
+import { createTransport } from "nodemailer";
 
 export const register = async (req, res) => {
-        try {
-            const { loginData , ...registrationDetails } = req.body
-            const faculty = new FacultySchema(loginData)
-            await faculty.save()
-            .then(res=>{console.log("succesfully saved faculty !!");
-            })
-            .catch(err=>console.log(err))
-            const personalSchema = new PersonalSchema({
-                user: faculty._id,
-                ...registrationDetails
-            })
-            await personalSchema.save()
-            .then(console.log("success")    
-            )
-            .catch(err=>console.log(err)
-            )
-            return res.json({
-                msg: "registration Succesfull !!",
-                personalSchema
-            })
-        } catch (error) {
-            return res.status(400).json({
-                error: "there is an error occured in saving into personal"
-            })
-        }
+  try {
+    const { loginData, ...registrationDetails } = req.body;
 
-    }
-//check user during registration middleware
-export const checkUser=async (req,res,next)=>{
-  const {email,phone}=req.body
-  if (await FacultySchema.findOne(email) || await FacultySchema.findOne(phone)) {
+    // Save faculty
+    const faculty = new FacultySchema(loginData);
+    await faculty.save();
+    console.log("Successfully saved faculty !!");
+
+    // Save personal info
+    const personalSchema = new PersonalSchema({
+      user: faculty._id,
+      ...registrationDetails,
+    });
+    await personalSchema.save();
+    console.log("Personal info saved successfully");
+
+    // Generate JWT token
+    const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
+      algorithm: "HS256",
+    });
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Send response
+    return res.json({
+      msg: "Registration Successful!!",
+      user: {
+        id: faculty._id,
+        email: faculty.email,
+      },
+    });
+  } catch (error) {
+    console.error("Error during registration:", error);
     return res.status(400).json({
-      error:" user with the given credentials exist go to sign in "
+      error: "There was an error saving data",
+    });
+  }
+};
+export const hodregister = async (req, res) => {
+  try {
+    const { email,department,password } = req.body;
+
+    // Save faculty
+    const faculty = await HodSchema.create({email,department,password});
+    console.log(faculty);
+    
+    console.log("Successfully saved HOD !!");
+    // Generate JWT token
+    const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
+      algorithm: "HS256",
+    });
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Send response
+    return res.json({
+      msg: "Registration Successful!!",
+      user: {
+        id: faculty._id,
+        email: faculty.email,
+      },
+    });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    return res.status(400).json({
+      error: "There was an error saving data",
+    });
+  }
+};
+
+//check user during registration middleware
+export const checkUser = async (req, res, next) => {
+  const { email, phone } = req.body;
+  if (
+    (await FacultySchema.findOne(email)) ||
+    (await FacultySchema.findOne(phone))
+  ) {
+    return res.status(400).json({
+      error: " user with the given credentials exist go to sign in ",
+    });
+  }
+  next();
+};
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await FacultySchema.findOne({ email });
+  if (!user) {
+    return res.status(400).json({
+      error: "No member with this Credentials are found !",
+    });
+  }
+
+  if (!user.authenticate(password)) {
+    return res.status(400).json({
+      error: "password didnt matched !",
+    });
+  }
+  const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+    algorithm: "HS256",
+  });
+  
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true, // must be true in production, but works on localhost with chrome flags
+    sameSite: "none", // required for cross-site cookies
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+  return res.json({
+    token,
+    user: {
+      id: user._id,
+      email: user.email,
+    }
+  })
+};
+export const adminlogin = async (req, res) => {
+  const { passCode } = req.body;
+  const Admin = await AdminSchema.findOne({ passCode });
+  const Iqac = await IqacSchema.findOne({ passCode });
+
+  if (!Admin) {
+    return res.status(400).json({
+      error: "No member with this Credentials are found !",
+    });
+  }
+  const token = jwt.sign({ _id: Admin._id }, process.env.SECRET, {
+    algorithm: "HS256",
+  });
+  res.cookie("token", token, { expire: new Date() + 99999 });
+
+  return res.json({
+    token,
+    Admin: {
+      id: Admin._id,
+      passCode,
+    },
+  });
+};
+export const Iqaclogin = async (req, res) => {
+  const { passCode } = req.body;
+  const Iqac = await IqacSchema.findOne({ passCode });
+
+  if (!Iqac) {
+    return res.status(400).json({
+      error: "No member with this Credentials are found !",
+    });
+  }
+  const token = jwt.sign({ _id: Iqac._id }, process.env.SECRET, {
+    algorithm: "HS256",
+  });
+  res.cookie("token", token, { expire: new Date() + 99999 });
+
+  return res.json({
+    token,
+    Iqac: {
+      id: Iqac._id,
+      passCode,
+    },
+  });
+};
+
+export const hodlogin = async (req, res) => {
+  const { department, password } = req.body;
+  const user = await HodSchema.findOne({ department });
+  if (!user) {
+    return res.status(400).json({
+      error: "No member with this Credentials are found !",
+    });
+  }
+  if(!user.authenticate(password)){
+    return res.status(400).json({
+      error:"passoword didnt match"
     })
   }
-  next()
-}
-export const login = async (req, res) => {
-        const { email, password } = req.body
-        const user = await FacultySchema.findOne({email})
-        if (!user) {
-            return res.status(400).json({
-                error: "No member with this Credentials are found !"
-            })
-        }
+  const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+    algorithm: "HS256",
+  });
+  res.cookie("token", token, { expire: new Date() + 99999 });
 
-        if (!user.authenticate(password)) {
-            return res.status(400).json({
-                error: "password didnt matched !"
-            })
-        }
-        const token = jwt.sign({ _id: user._id }, process.env.SECRET, { algorithm: 'HS256' })
-        res.cookie("token", token, { expire: new Date() + 99999 })
-
-    return res.json({
-        token, user: {
-            id: user._id,
-            email,
-            password
-        }
-    })
-}
-
-export const adminlogin = async (req, res) => {
-    const { passCode} = req.body
-    const Admin = await AdminSchema.findOne({ passCode})
-    const Iqac = await IqacSchema.findOne({ passCode })
-
-    if (!Admin) {
-        return res.status(400).json({
-            error: "No member with this Credentials are found !"
-        })
-    }
-    const token = jwt.sign({ _id: Admin._id }, process.env.SECRET, { algorithm: 'HS256' })
-    res.cookie("token", token, { expire: new Date() + 99999 })
-
-    return res.json({
-        token, Admin: {
-            id: Admin._id,
-            passCode
-        }
-    })
-}
-export const Iqaclogin = async (req, res) => {
-    const { passCode} = req.body
-    const Iqac = await IqacSchema.findOne({ passCode })
-
-    if (!Iqac) {
-        return res.status(400).json({
-            error: "No member with this Credentials are found !"
-        })
-    }
-    const token = jwt.sign({ _id: Iqac._id }, process.env.SECRET, { algorithm: 'HS256' })
-    res.cookie("token", token, { expire: new Date() + 99999 })
-
-    return res.json({
-        token, Iqac: {
-            id: Iqac._id,
-            passCode
-        }
-    })
-}
-
-export const hodlogin= async (req, res) => {
-    const {department, password } = req.body
-    const user = await HodSchema.findOne({ email })
-    if (!user) {
-        return res.status(400).json({
-            error: "No member with this Credentials are found !"
-        })
-    }
-    const token = jwt.sign({ _id: user._id }, process.env.SECRET, { algorithm: 'HS256' })
-    res.cookie("token", token, { expire: new Date() + 99999 })
-
-    return res.json({
-        token, user: {
-            id: user._id,
-            department,
-            password
-        }
-    })
-}
+  return res.json({
+    token,
+    user: {
+      id: user._id
+    },
+  });
+};
 
 export const signout = (req, res) => {
-        res.clearCookie("token")
-    }
+  res.clearCookie("token");
+};
 
 export const isSignedIn = expressjwt({
-        secret: process.env.SECRET,
-        userProperty: "auth",
-        algorithms: ["HS256"]
-    })
+  secret: process.env.SECRET,
+  userProperty: "auth",
+  algorithms: ["HS256"],
+});
 
-export const isAuthenticated = (req, res, next) => {  
+export const isAuthenticated = (req, res, next) => {
   // console.log(req.profile._id.toString === req.auth._id);
+  const checker = req.profile && req.auth && req.profile.user._id.toString() == req.auth._id;
+  if (!checker) {
+    return res.status(400).json({
+      error: "You are not Authenticated !",
+    });
+  }
+  next();
+};
+export const isHodAuthenticated = (req, res, next) => {
+  // Ensure both IDs are compared as strings
+  console.log(req.auth);
   
-        const checker = req.profile && req.auth && req.profile.user.toString() == req.auth._id
-        if (!checker) {
-            return res.status(400).json({
-                error: "You are not Authenticated !"
-            })
-        }
-        next()
-    }
+  const checker = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
 
+  if (!checker) {
+    return res.status(400).json({
+      error: "You are not Authenticated !",
+    });
+  }
+  next();
+};
 
-export const isAdmin=(req,res,next)=>{
-  
-}
+export const isAdmin = (req, res, next) => {};
 
 //this needs to be seen another time !!
 const transporter = createTransport({
-    service: "gmail",
-    auth: {
-        user:`${process.env.EMAIL}`,
-        pass: `${process.env.EMAIL_PASSWORD}`
-    }
-})
+  service: "gmail",
+  auth: {
+    user: `${process.env.EMAIL}`,
+    pass: `${process.env.EMAIL_PASSWORD}`,
+  },
+});
 
-export const sendmail = async (req,res) => {
-    const {email}=req.body
-    const sendingDescription = {
-        from: process.env.EMAIL,
-        to: email,
-        subject: "Regarding the Testing purpose from vinay",
-        html: `
+export const sendmail = async (req, res) => {
+  const { email } = req.body;
+  const sendingDescription = {
+    from: process.env.EMAIL,
+    to: email,
+    subject: "Regarding the Testing purpose from vinay",
+    html: `
             <p>Thank you for signing up! Please click the link below to verify your email and activate your account:</p>
             <a href="" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
                 Verify Email Now
             </a>
             <p>The link is valid for 1 hour.</p>
         `,
-    }
-    try {
-        await transporter.sendMail(sendingDescription).then(em=>console.log(em)
-        )
-
-        } catch (error) {
-            res.json({
-                error: error.message
-            })
-        }
-
-    }
+  };
+  try {
+    await transporter
+      .sendMail(sendingDescription)
+      .then((em) => console.log(em));
+  } catch (error) {
+    res.json({
+      error: error.message,
+    });
+  }
+};
 // Store OTP and expiry temporarily (NOT in database)
 const otpStore = new Map();
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email)
-      return res.status(400).json({ error: "Email is required" });
+    if (!email) return res.status(400).json({ error: "Email is required" });
 
     const user = await FacultySchema.findOne({ email });
-    if (!user)
-      return res.json({ message: "User not registered" });
+    if (!user) return res.json({ message: "User not registered" });
 
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -258,14 +340,13 @@ export const forgotPassword = async (req, res) => {
       This is an automated message. Please do not reply to this email.
     </small>
   </div>
-      `
+      `,
     });
 
     return res.json({
       message: "OTP sent successfully",
-      otpToken,   // ⬅️ frontend will use this instead of email
+      otpToken, // ⬅️ frontend will use this instead of email
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -281,19 +362,19 @@ export const verifyOTP = async (req, res) => {
     const data = otpStore.get(otpToken);
 
     if (!data)
-      return res.status(400).json({ error: "OTP not generated or expired session" });
+      return res
+        .status(400)
+        .json({ error: "OTP not generated or expired session" });
 
     if (data.expiresAt < Date.now())
       return res.status(400).json({ error: "OTP expired" });
 
-    if (data.otp !== otp)
-      return res.status(400).json({ error: "Invalid OTP" });
+    if (data.otp !== otp) return res.status(400).json({ error: "Invalid OTP" });
 
     return res.json({
       message: "OTP verified successfully",
-      email: data.email,  // ⬅️ frontend now gets email automatically
+      email: data.email, // ⬅️ frontend now gets email automatically
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -307,12 +388,10 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ error: "Missing fields" });
 
     const data = otpStore.get(otpToken);
-    if (!data)
-      return res.status(400).json({ error: "Invalid session" });
+    if (!data) return res.status(400).json({ error: "Invalid session" });
 
     const user = await FacultySchema.findOne({ email: data.email });
-    if (!user)
-      return res.status(400).json({ error: "User not found" });
+    if (!user) return res.status(400).json({ error: "User not found" });
 
     user.password = password;
     await user.save();
@@ -321,10 +400,8 @@ export const resetPassword = async (req, res) => {
     otpStore.delete(otpToken);
 
     return res.json({ message: "Password reset successful!" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
   }
 };
-

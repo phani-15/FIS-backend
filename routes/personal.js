@@ -8,9 +8,8 @@ const router=express.Router()
 router.param("userId",getUserById)
 
 
-//for testing purpose only not for actual website
+//read routes
 router.get("/personal/:userId",isSignedIn,canviewProfile,getDeatils)
-
 
 
 

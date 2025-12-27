@@ -7,16 +7,20 @@ const personalSchema = new mongoose.Schema({
         required: true,
     },
     personalData:{
-    DOB: { type: Date, required: true },
-    college: {type:String ,enum: ["University College of Engineering", "College of PharmaCeutical Sciences"], required: true },
-    department: { type: String, required: true },
-    designation: { type: String, required: true },
-    father: { type: String, required: true },
-    gender: { type: String, required: true },
-    marital: { type: String, required: true }, 
-    name: { type: String, required: true },
-    avatar: { type: String, required: true },
-    },
+        DOB: { type: Date, required: true }, 
+        area:{ type: String},
+        city:{ type: String},
+        college: {type:String ,enum: ["University College of Engineering", "College of PharmaCeutical Sciences"], required: true },
+        date_of_join:{type:String,required:true}    ,
+        department: { type: String, required: true },
+        designation: { type: String, required: true },
+        father: { type: String, required: true },
+        gender: { type: String, required: true },
+        marital: { type: String, required: true },  
+        name: { type: String, required: true },
+        avatar: { type: String, required: true },
+        phone : { type: String,unique:true},
+    }, 
     education: {
         tenth: {
             percentage: { type: String, required: true },
@@ -79,7 +83,12 @@ const personalSchema = new mongoose.Schema({
         institute: { type: String, minchar: 4 },
         from: { type: Number, min: 1947 },
         to: { type: String, max: new Date().getFullYear() }
-    }]
+    }],
+    credentials:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Credentials",
+        default:""
+    }
 
 }, { timestamps: true })
 

@@ -9,7 +9,16 @@ import { createTransport } from "nodemailer";
 
 export const register = async (req, res) => {
   try {
-    const { loginData, ...registrationDetails } = req.body;
+    // Reconstructed object (text fields)
+    const data = req.body;
+
+    // Attach file(s) back to object
+    req.files.forEach(file => {
+      if (file.fieldname === "personalData[avatar]") {
+        data.personalData.avatar = file.filename;
+      }
+    });
+    const {loginData,...registrationDetails}=data
 
     // Save faculty
     const faculty = new FacultySchema(loginData);
@@ -117,7 +126,7 @@ export const login = async (req, res) => {
       error: "password didnt matched !",
     });
   }
-  const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+  const token = jwt.sign({ _id: user._id ,role:"user" }, process.env.SECRET, {
     algorithm: "HS256",
   });
   
@@ -194,7 +203,7 @@ export const hodlogin = async (req, res) => {
       error:"passoword didnt match"
     })
   }
-  const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+  const token = jwt.sign({ _id: user._id ,role:"hod" }, process.env.SECRET, {
     algorithm: "HS256",
   });
   res.cookie("token", token, { expire: new Date() + 99999 });
@@ -229,8 +238,6 @@ export const isAuthenticated = (req, res, next) => {
 };
 export const isHodAuthenticated = (req, res, next) => {
   // Ensure both IDs are compared as strings
-  console.log(req.auth);
-  
   const checker = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
 
   if (!checker) {
@@ -240,6 +247,17 @@ export const isHodAuthenticated = (req, res, next) => {
   }
   next();
 };
+
+export const canviewProfile=(req,res,next)=>{    
+  const isOwner=req.profile.user._id.toString()===req.auth._id.toString()
+  const isHod=req.auth.role==="hod"
+  if(!isOwner && !isHod){
+    return res.status(400).json({
+      error:"your access was denied !"
+    })
+  }
+  next()
+}
 
 export const isAdmin = (req, res, next) => {};
 

@@ -5,10 +5,11 @@ import { defaultArgs } from "puppeteer";
 import { forgotPassword } from "../controllers/auth.js";
 import { resetPassword } from "../controllers/auth.js";
 import { verifyOTP } from "../controllers/auth.js"; 
+import {upload} from "../utils/multer.js";
 const router=express.Router()
 
 //handlle Register
-router.post("/register",register);
+router.post("/register",upload.any(),register);
 router.post("/hodregister",hodregister);
 router.post("/login",login)
 router.post("/admin",adminlogin)

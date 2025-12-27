@@ -7,7 +7,8 @@ import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import HodRoutes from "./routes/hod.js"
 import personalRoutes from "./routes/personal.js";
-
+import DetailsRoutes from "./routes/addDetails.js"
+import path from "path"
 const app = express();
 
 // ---------------- DB CONNECTION ----------------
@@ -31,7 +32,7 @@ app.use(cors({
   credentials: true
 }));
 
-
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
@@ -39,6 +40,7 @@ app.use(cookieParser());
 app.use("/api", authRoutes);
 app.use("/api", personalRoutes);
 app.use("/api", HodRoutes);
+app.use("/api", DetailsRoutes);
 
 // Test route
 app.get("/", (req, res) => {

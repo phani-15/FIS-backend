@@ -17,8 +17,10 @@ export const gethodByID = async (req, res, next, id) => {
 
 export const gethodDetails = async (req, res) => {
   try {
-    const faculties = await PersonalSchema.find({ department: req.profile.department }).select("_id name")
-    return res.json({ faculties });
+    const faculties = await PersonalSchema.find({ "personalData.department": req.profile.department })
+    .populate("user" ,"email")
+    .select("_id personalData.name personalData.designation ")
+    return res.json({ faculties ,role:"hod"});
   } catch (err) {
     return res.status(500).json({ error: "Error fetching faculties", details: err.message });
   }

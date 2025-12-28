@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.js";
 import HodRoutes from "./routes/hod.js"
 import personalRoutes from "./routes/personal.js";
 import DetailsRoutes from "./routes/addDetails.js"
+import IqacRoutes from "./routes/iqac.js"
 import path from "path"
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api", authRoutes);
 app.use("/api", personalRoutes);
 app.use("/api", HodRoutes);
 app.use("/api", DetailsRoutes);
+app.use("/api", IqacRoutes);
 
 // Test route
 app.get("/", (req, res) => {

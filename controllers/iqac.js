@@ -17,10 +17,19 @@ export const getiqacByID = async (req, res, next, id) => {
 export const getiqacDetails = async (req, res) => {
   try {
     const faculties = await PersonalSchema
-  .find()
-  .select("personalData.name personalData.department personalData.designation");
+      .find()
+      .populate({path:"user",select:"email"})  //this seems annoying to me bbut it works for some reason
+      .select("personalData.name personalData.department personalData.designation");
 
-    return res.json({ faculties }); 
+      //rhis is only cause the frontend dev used to see this pretty annoying format 😭😮‍💨😮‍💨
+    const result = faculties.map(({ user,_id, personalData }) => ({
+      _id,
+      name: personalData.name ,
+      department: personalData.department ,
+      role: personalData.designation ,
+      email:user.email
+    }));
+    return res.json(result);
   } catch (err) {
     return res.status(500).json({ error: "Error fetching faculties", details: err.message });
   }

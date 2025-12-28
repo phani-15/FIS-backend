@@ -5,7 +5,7 @@ import {getiqacByID,getiqacDetails} from "../controllers/iqac.js"
  const router=express.Router()        
  
 router.param("iqacid",getiqacByID)
-router.get("/iqac/:iqacid",isSignedIn,isiqacAuthenticated,getiqacDetails);
+router.get("/ofc/:iqacid",isSignedIn,isiqacAuthenticated,getiqacDetails);
 
 
 

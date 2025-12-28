@@ -108,20 +108,12 @@ export const hodregister = async (req, res) => {
 export const iqacRegister = async (req, res) => {
   
   try {
-    const { role, passcode } = req.body;
-   
-    const iqac = await IqacSchema.create({
-      role,
-      passcode
-    });
-    console.log(iqac)
- 
+    const iqac = await IqacSchema.create(req.body).catch(err=>{console.log(err);
+    })
     const token = jwt.sign(
       { _id: iqac._id, role: iqac.role },
       process.env.SECRET,
-      {
-        algorithm: "HS256",
-      }
+      {algorithm: "HS256"}
     );
 
     res.cookie("token", token, {
@@ -130,10 +122,8 @@ export const iqacRegister = async (req, res) => {
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
-    
-
     return res.json({
-      msg: "IQAC Registration Successful!!",
+      msg: "OFC Registration Successful!!",
       user: {
         id: iqac._id,
         role: iqac.role,
@@ -141,7 +131,7 @@ export const iqacRegister = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({
-      error: "There was an error saving IQAC data",
+      error: "There was an error saving OFC data",
     });
   }
 };
@@ -195,7 +185,6 @@ export const login = async (req, res) => {
 export const adminlogin = async (req, res) => {
   const { passCode } = req.body;
   const Admin = await AdminSchema.findOne({ passCode });
-  const Iqac = await IqacSchema.findOne({ passCode });
 
   if (!Admin) {
     return res.status(400).json({
@@ -215,9 +204,8 @@ export const adminlogin = async (req, res) => {
     },
   });
 };
-export const Iqaclogin = async (req, res) => {
-  const {role,passcode } = req.body;
-
+export const ofclogin = async (req, res) => {
+  const {role,passcode } = req.body;  
   const Iqac = await IqacSchema.findOne({ role });
 
   if (!Iqac) {

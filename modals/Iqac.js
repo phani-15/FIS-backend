@@ -3,22 +3,12 @@ import { v4 } from "uuid";
 const { createHmac } = await import("node:crypto");
 
 const IqacSchema = new mongoose.Schema({
-  role: {
-    type: String,
-    required: true,
-    default: "IQAC"
-  },
-  encry_password: {
-    type: String,
-    required: true
-  },
-  salt: {
-    type: String
-  }
+  role: {type: String,required: true,default: "IQAC"},
+  encry_password: {type: String,required: true},
+  salt: {type: String}
 });
 
-IqacSchema
-  .virtual("passcode")
+IqacSchema.virtual("passcode")
   .set(function (passcode) {
     this._passcode = passcode;
     this.salt = v4();

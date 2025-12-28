@@ -7,6 +7,7 @@ import AddDetailsSchema from "../modals/AddDetails.js"
 import jwt from "jsonwebtoken";
 import { expressjwt } from "express-jwt";
 
+
 export const register = async (req, res) => {
   try {
     // Reconstructed object (text fields)
@@ -104,7 +105,61 @@ export const hodregister = async (req, res) => {
     });
   }
 };
+export const iqacRegister = async (req, res) => {
+  
+  try {
+    const { role, passcode } = req.body;
+   
+    const iqac = await IqacSchema.create({
+      role,
+      passcode
+    });
+    console.log(iqac)
+ 
+    const token = jwt.sign(
+      { _id: iqac._id, role: iqac.role },
+      process.env.SECRET,
+      {
+        algorithm: "HS256",
+      }
+    );
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    
+
+    return res.json({
+      msg: "IQAC Registration Successful!!",
+      user: {
+        id: iqac._id,
+        role: iqac.role,
+      },
+    });
+  } catch (error) {
+    return res.status(400).json({
+      error: "There was an error saving IQAC data",
+    });
+  }
+};
+
+
+//check user during registration middleware
+export const checkUser = async (req, res, next) => {
+  const { email, phone } = req.body;
+  if (
+    (await FacultySchema.findOne(email)) ||
+    (await FacultySchema.findOne(phone))
+  ) {
+    return res.status(400).json({
+      error: " user with the given credentials exist go to sign in ",
+    });
+  }
+  next();
+};
 export const login = async (req, res) => {
   const { email, password } = req.body;
   const user = await FacultySchema.findOne({ email });
@@ -161,13 +216,19 @@ export const adminlogin = async (req, res) => {
   });
 };
 export const Iqaclogin = async (req, res) => {
-  const { passCode } = req.body;
-  const Iqac = await IqacSchema.findOne({ passCode });
+  const {role,passcode } = req.body;
+
+  const Iqac = await IqacSchema.findOne({ role });
 
   if (!Iqac) {
     return res.status(400).json({
       error: "No member with this Credentials are found !",
     });
+  }
+  if(!Iqac.authenticate(passcode)){
+    return res.status(400).json({
+      error:"password didnt match"
+    })
   }
   const token = jwt.sign({ _id: Iqac._id }, process.env.SECRET, {
     algorithm: "HS256",
@@ -178,12 +239,12 @@ export const Iqaclogin = async (req, res) => {
     token,
     Iqac: {
       id: Iqac._id,
-      passCode,
+      passcode,
     },
-  });
+  })
 };
 
-export const hodlogin = async (req, res) => {
+export const  hodlogin = async (req, res) => {
   const { department, password } = req.body;
   const user = await HodSchema.findOne({ department });
   if (!user) {
@@ -240,6 +301,19 @@ export const isHodAuthenticated = (req, res, next) => {
   }
   next();
 };
+export const isiqacAuthenticated = (req, res, next) => {
+  // Ensure both IDs are compared as strings
+  console.log(req.auth);
+  
+  const checker = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
+
+  if (!checker) {
+    return res.status(400).json({
+      error: "You are not Authenticated !",
+    });
+  }
+  next();
+};
 
 export const canviewProfile=(req,res,next)=>{    
   const isOwner=req.profile.user._id.toString()===req.auth._id.toString()
@@ -253,3 +327,5 @@ export const canviewProfile=(req,res,next)=>{
 }
 
 export const isAdmin = (req, res, next) => {};
+
+//this needs to be seen another time !!

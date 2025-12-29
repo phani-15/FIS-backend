@@ -3,8 +3,8 @@ import PersonalSchema from "../modals/PersonalSchema.js"
 import mongoose from 'mongoose';
 
 export const getUserById = (req, res, next, id) => {
-    FacultySchema.findById(id)
-        .exec()
+    PersonalSchema.findOne({user:id})
+        .populate("user")
         .then(user => {
             if (!user) {
                 return res.status(404).json({
@@ -12,13 +12,17 @@ export const getUserById = (req, res, next, id) => {
                     requestedId: id
                 });
             }
-            req.profile = user;
+            // req.profile = user;
+            req.profile={...user.toObject(),role:"user"}
             next();
         })
 };
 
 
 export const getDeatils=(req,res)=>{
+    if (req.auth.role==="hod") {
+        req.profile.role="hod"
+    }
     res.json(req.profile)
 }
 

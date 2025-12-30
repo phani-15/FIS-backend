@@ -291,8 +291,6 @@ export const isHodAuthenticated = (req, res, next) => {
 };
 export const isiqacAuthenticated = (req, res, next) => {
   // Ensure both IDs are compared as strings
-  console.log(req.auth);
-  
   const checker = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
 
   if (!checker) {

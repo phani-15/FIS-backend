@@ -29,7 +29,6 @@ export const getCredDetails=(req,res)=>{
     const sendingObj={}
     for(const [key,value] of Object.entries(req.credential.toObject())){
         if(Array.isArray(value) && value.length>0){
-            console.log(key);
             sendingObj[key]=value
         }
     }

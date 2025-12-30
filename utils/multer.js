@@ -16,3 +16,6 @@ export const uploadCred = multer({
     },
   }),
 });
+
+
+export const fileFIelds=new Set(["document","sanctioning order","certificate","proceeding","allotment order"])

@@ -8,12 +8,12 @@ import { iqacRegister,ofclogin } from "../controllers/auth.js";
 const router=express.Router()
 
 //handlle Register
-router.post("/register",upload.any(),register);
+router.post("/register",upload.fields([{ name: "personalData[avatar]", maxCount: 1 }]),register);
 router.post("/hodregister",hodregister);
 router.post("/ofcregister",iqacRegister);
 router.post("/login",login)
 router.post("/admin",adminlogin)
-router.post("/iqac",ofclogin)
+router.post("/ofc",ofclogin)
 router.post("/hod",hodlogin)
 
 //handle sending mail

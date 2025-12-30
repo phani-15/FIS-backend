@@ -14,48 +14,47 @@ export const register = async (req, res) => {
     const data = req.body;
 
     // Attach file(s) back to object
-    req.files.forEach(file => {
-      if (file.fieldname === "personalData[avatar]") {
-        data.personalData.avatar = file.filename;
-      }
+    const avatarFile = req.files?.["personalData[avatar]"]?.[0];
+    if (avatarFile) {
+      data.personalData.avatar = avatarFile.filename;
+    }
+    const { loginData, ...registrationDetails } = data
+
+    // Save faculty
+    const faculty = new FacultySchema(loginData);
+    await faculty.save();
+    console.log("Successfully saved faculty !!");
+
+    // Save personal info
+
+    const details = await AddDetailsSchema.create({
+      user: faculty._id
+    })
+    const personalSchema = new PersonalSchema({
+      user: faculty._id,
+      ...registrationDetails,
+      credentials: details._id
     });
-      const {loginData,...registrationDetails}=data
-      
-      // Save faculty
-      const faculty = new FacultySchema(loginData);
-      await faculty.save();
-      console.log("Successfully saved faculty !!");
+    await personalSchema.save();
 
-      // Save personal info
-      
-      const details=await AddDetailsSchema.create({
-        user:faculty._id
-      })
-      const personalSchema = new PersonalSchema({
-        user: faculty._id,
-        ...registrationDetails,
-        credentials:details._id
-      });
-      await personalSchema.save();
-      
-      console.log("Personal info saved successfully");
+    console.log("Personal info saved successfully");
 
-      // Generate JWT token
-      const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
-        algorithm: "HS256",
-      });
+    // Generate JWT token
+    const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
+      algorithm: "HS256",
+    });
 
-      // Set cookie
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
-      // Send response
-      return res.json({
-        msg: "Registration Successful!!",
+    // Send response
+    return res.json({
+      msg: "Registration Successful!!",
       user: {
         id: faculty._id,
         email: faculty.email,
@@ -70,12 +69,12 @@ export const register = async (req, res) => {
 };
 export const hodregister = async (req, res) => {
   try {
-    const { email,department,password } = req.body;
+    const { email, department, password } = req.body;
 
     // Save faculty
-    const faculty = await HodSchema.create({email,department,password});
+    const faculty = await HodSchema.create({ email, department, password });
     console.log(faculty);
-    
+
     console.log("Successfully saved HOD !!");
     // Generate JWT token
     const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
@@ -106,14 +105,15 @@ export const hodregister = async (req, res) => {
   }
 };
 export const iqacRegister = async (req, res) => {
-  
+
   try {
-    const iqac = await IqacSchema.create(req.body).catch(err=>{console.log(err);
+    const iqac = await IqacSchema.create(req.body).catch(err => {
+      console.log(err);
     })
     const token = jwt.sign(
       { _id: iqac._id, role: iqac.role },
       process.env.SECRET,
-      {algorithm: "HS256"}
+      { algorithm: "HS256" }
     );
 
     res.cookie("token", token, {
@@ -164,10 +164,10 @@ export const login = async (req, res) => {
       error: "password didnt matched !",
     });
   }
-  const token = jwt.sign({ _id: user._id ,role:"user" }, process.env.SECRET, {
+  const token = jwt.sign({ _id: user._id, role: "user" }, process.env.SECRET, {
     algorithm: "HS256",
   });
-  
+
   res.cookie("token", token, {
     httpOnly: true,
     secure: true, // must be true in production, but works on localhost with chrome flags
@@ -205,7 +205,7 @@ export const adminlogin = async (req, res) => {
   });
 };
 export const ofclogin = async (req, res) => {
-  const {role,passcode } = req.body;  
+  const { role, passcode } = req.body;
   const Iqac = await IqacSchema.findOne({ role });
 
   if (!Iqac) {
@@ -213,9 +213,9 @@ export const ofclogin = async (req, res) => {
       error: "No member with this Credentials are found !",
     });
   }
-  if(!Iqac.authenticate(passcode)){
+  if (!Iqac.authenticate(passcode)) {
     return res.status(400).json({
-      error:"password didnt match"
+      error: "password didnt match"
     })
   }
   const token = jwt.sign({ _id: Iqac._id }, process.env.SECRET, {
@@ -232,7 +232,7 @@ export const ofclogin = async (req, res) => {
   })
 };
 
-export const  hodlogin = async (req, res) => {
+export const hodlogin = async (req, res) => {
   const { department, password } = req.body;
   const user = await HodSchema.findOne({ department });
   if (!user) {
@@ -240,12 +240,12 @@ export const  hodlogin = async (req, res) => {
       error: "No member with this Credentials are found !",
     });
   }
-  if(!user.authenticate(password)){
+  if (!user.authenticate(password)) {
     return res.status(400).json({
-      error:"passoword didnt match"
+      error: "passoword didnt match"
     })
   }
-  const token = jwt.sign({ _id: user._id ,role:"hod" }, process.env.SECRET, {
+  const token = jwt.sign({ _id: user._id, role: "hod" }, process.env.SECRET, {
     algorithm: "HS256",
   });
   res.cookie("token", token, { expire: new Date() + 99999 });
@@ -301,17 +301,17 @@ export const isiqacAuthenticated = (req, res, next) => {
   next();
 };
 
-export const canviewProfile=(req,res,next)=>{    
-  const isOwner=req.profile.user._id.toString()===req.auth._id.toString()
-  const isHod=req.auth.role==="hod"
-  if(!isOwner && !isHod){
+export const canviewProfile = (req, res, next) => {
+  const isOwner = req.profile.user._id.toString() === req.auth._id.toString()
+  const isHod = req.auth.role === "hod"
+  if (!isOwner && !isHod) {
     return res.status(400).json({
-      error:"your access was denied !"
+      error: "your access was denied !"
     })
   }
   next()
 }
 
-export const isAdmin = (req, res, next) => {};
+export const isAdmin = (req, res, next) => { };
 
 //this needs to be seen another time !!

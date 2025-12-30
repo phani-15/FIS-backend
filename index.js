@@ -10,9 +10,6 @@ import personalRoutes from "./routes/personal.js";
 import DetailsRoutes from "./routes/addDetails.js"
 import IqacRoutes from "./routes/iqac.js"
 import path from "path"
-import cors from "cors"
-import authRoutes from "./routes/auth.js"
-import personalRoutes from "./routes/personal.js"
 const app = express();
 
 //middleWares

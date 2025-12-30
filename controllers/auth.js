@@ -20,8 +20,6 @@ export const register = async (req, res) => {
 
     // Save faculty
     const faculty = await FacultySchema.find({email:loginData.email})
-    console.log(faculty[0]._id.toString());
-    
     // Save personal info
 
     const details = await AddDetailsSchema.create({
@@ -53,11 +51,18 @@ export const register = async (req, res) => {
 export const dreg=async (req,res)=>{
   const {email,password}=req.body;
   const faculty=await FacultySchema.create(req.body)
+  if (!faculty) {
+    return res.status(400).json({
+      error:"saving user failed"
+    })
+  }
+  const token=jwt.sign({email:email},process.env.SECRET,{expiresIn:"24h"})
   return res.json({
     msg: "Registration Successful!!",
       user: {
         id: faculty._id,
         email: faculty.email,
+        token:token
       },  
   })
 }

@@ -12,8 +12,6 @@ export const register = async (req, res) => {
   try {
     // Reconstructed object (text fields)
     const data = req.body;
-
-    // Attach file(s) back to object
     const avatarFile = req.files?.["personalData[avatar]"]?.[0];
     if (avatarFile) {
       data.personalData.avatar = avatarFile.filename;
@@ -21,37 +19,21 @@ export const register = async (req, res) => {
     const { loginData, ...registrationDetails } = data
 
     // Save faculty
-    const faculty = new FacultySchema(loginData);
-    await faculty.save();
-    console.log("Successfully saved faculty !!");
-
+    const faculty = await FacultySchema.find({email:loginData.email})
+    console.log(faculty[0]._id.toString());
+    
     // Save personal info
 
     const details = await AddDetailsSchema.create({
-      user: faculty._id
+      user: faculty[0]._id.toString()
     })
     const personalSchema = new PersonalSchema({
-      user: faculty._id,
+      user:faculty[0]._id.toString(),
       ...registrationDetails,
       credentials: details._id
     });
     await personalSchema.save();
-
     console.log("Personal info saved successfully");
-
-    // Generate JWT token
-    const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
-      algorithm: "HS256",
-    });
-
-    // Set cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
     // Send response
     return res.json({
       msg: "Registration Successful!!",
@@ -67,6 +49,18 @@ export const register = async (req, res) => {
     });
   }
 };
+
+export const dreg=async (req,res)=>{
+  const {email,password}=req.body;
+  const faculty=await FacultySchema.create(req.body)
+  return res.json({
+    msg: "Registration Successful!!",
+      user: {
+        id: faculty._id,
+        email: faculty.email,
+      },  
+  })
+}
 export const hodregister = async (req, res) => {
   try {
     const { email, department, password } = req.body;

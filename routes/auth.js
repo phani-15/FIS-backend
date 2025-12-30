@@ -1,6 +1,6 @@
 import express from "express"
 import {check} from "express-validator"
-import {login,register,adminlogin,hodlogin,hodregister} from "../controllers/auth.js"
+import {login,register,adminlogin,hodlogin,hodregister,dreg} from "../controllers/auth.js"
 import { defaultArgs } from "puppeteer";
 import { forgotPassword,resetPassword,verifyOTP,sendmail } from "../utils/nodemailer.js";
 import { upload } from "../utils/multer.js";
@@ -8,6 +8,8 @@ import { iqacRegister,ofclogin } from "../controllers/auth.js";
 const router=express.Router()
 
 //handlle Register
+router.post("/dummyreg",dreg);
+
 router.post("/register",upload.fields([{ name: "personalData[avatar]", maxCount: 1 }]),register);
 router.post("/hodregister",hodregister);
 router.post("/ofcregister",iqacRegister);

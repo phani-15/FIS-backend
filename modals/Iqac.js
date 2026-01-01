@@ -1,23 +1,39 @@
 import mongoose from "mongoose";
-import { v4 } from "uuid";
-const { createHmac } = await import("node:crypto");
+import { v4 as uuidv4 } from "uuid";
+import { createHmac } from "crypto";
 
 const IqacSchema = new mongoose.Schema({
-  role: {type: String,required: true,default: "IQAC"},
-  encry_password: {type: String,required: true},
-  salt: {type: String}
-});
+  role: {
+    type: String,
+    required: true,
+    unique: true,
+    enum: [
+      "Principal",
+      "Vice Principal",
+      "IQAC Coordinator",
+      "IQAC Director",
+      "R&D Director"
+    ]
+  },
 
+  encry_password: {
+    type: String,
+    required: true
+  },
+
+  salt: {
+    type: String
+  }
+});
 IqacSchema.virtual("passcode")
   .set(function (passcode) {
     this._passcode = passcode;
-    this.salt = v4();
+    this.salt = uuidv4();
     this.encry_password = this.encryptPassword(passcode);
   })
   .get(function () {
     return this._passcode;
   });
-
 IqacSchema.methods = {
   authenticate: function (passcode) {
     return this.encryptPassword(passcode) === this.encry_password;
@@ -30,7 +46,7 @@ IqacSchema.methods = {
       return createHmac("sha256", this.salt)
         .update(passcode)
         .digest("hex");
-    } catch (error) {
+    } catch (err) {
       return "";
     }
   }

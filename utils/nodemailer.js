@@ -1,4 +1,10 @@
 import { createTransport } from "nodemailer";
+import facultySchema from "../modals/FacultySchema.js";
+import IqacSchema from '../modals/Iqac.js'
+import hodSchema from '../modals/hod.js';
+import adminSchema from '../modals/admin.js'
+import crypto from "crypto";
+import { ofcMails, adminMail } from "../modals/mails.js";
 
 const transporter = createTransport({
   service: "gmail",
@@ -9,54 +15,97 @@ const transporter = createTransport({
 });
 
 export const sendmail = async (req, res) => {
-  const { email } = req.body;
-  const sendingDescription = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Regarding the Testing purpose from vinay",
-    html: `
-            <p>Thank you for signing up! Please click the link below to verify your email and activate your account:</p>
-            <a href="" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
-                Verify Email Now
-            </a>
-            <p>The link is valid for 1 hour.</p>
-        `,
-  };
-  try {
-    await transporter
-      .sendMail(sendingDescription)
-      .then((em) => console.log(em));
-  } catch (error) {
-    res.json({
-      error: error.message,
-    });
-  }
-};
-// Store OTP and expiry temporarily (NOT in database)
-const otpStore = new Map();
-export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email) return res.status(400).json({ error: "Email is required" });
+    // Validate input
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
 
-    const user = await FacultySchema.findOne({ email });
-    if (!user) return res.json({ message: "User not registered" });
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Regarding the Testing purpose from vinay",
+      html: `
+        <p>Thank you for signing up! Please click the link below to verify your email and activate your account:</p>
+        <a href="#" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+          Verify Email Now
+        </a>
+        <p>The link is valid for 1 hour.</p>
+      `,
+    };
 
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await transporter.sendMail(mailOptions);
 
-    // Generate unique token for this OTP session
-    const otpToken = crypto.randomBytes(20).toString("hex");
-
-    // Save in memory
-    otpStore.set(otpToken, {
-      email,
-      otp,
-      expiresAt: Date.now() + 10 * 60 * 1000,
+    return res.status(200).json({
+      message: "Email sent successfully",
     });
 
-    // Send email
+  } catch (error) {
+    console.error("Mail error:", error);
+
+    return res.status(500).json({
+      error: "Failed to send email",
+    });
+  }
+};
+
+const otpStore = new Map();
+const forgotPassword = async (req, res) => {
+  try {
+    const { type, identifier } = req.body;
+
+    if (!type || !identifier)
+      return res.status(400).json({ error: "Type and identifier are required" });
+
+    let user;
+let email;
+
+switch (type) {
+  case "faculty":
+    user = await facultySchema.findOne({ email: identifier });
+    if (!user) return res.status(404).json({ error: "Faculty not found" });
+    email = user.email;
+    break;
+
+  case "iqac":
+    user = await IqacSchema.findOne({ role: identifier });
+    if (!user) return res.status(404).json({ error: "IQAC role not found" });
+
+    email = ofcMails[identifier];
+    if (!email)
+      return res.status(404).json({ error: "IQAC email not configured" });
+    break;
+
+  case "hod":
+    user = await hodSchema.findOne({ department: identifier });
+    if (!user) return res.status(404).json({ error: "HOD not found" });
+    email = user.email;
+    break;
+
+  case "admin":
+    user = await adminSchema.findOne({});
+    if (!user) return res.status(404).json({ error: "Admin not found" });
+
+    email = adminMail.mail;
+    break;
+
+  default:
+    return res.status(400).json({ error: "Invalid user type" });
+}
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpToken = crypto.randomBytes(20).toString("hex");
+
+    otpStore.set(otpToken, {
+      type,
+      identifier,
+      email,
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000
+    });
+
     await transporter.sendMail({
       from: process.env.EMAIL,
       to: email,
@@ -101,8 +150,9 @@ export const forgotPassword = async (req, res) => {
 
     return res.json({
       message: "OTP sent successfully",
-      otpToken, // ⬅️ frontend will use this instead of email
+      otpToken
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -110,27 +160,26 @@ export const forgotPassword = async (req, res) => {
 };
 export const verifyOTP = async (req, res) => {
   try {
-    const { otpToken, otp } = req.body;
+    const { otp } = req.body;
+    const { otpToken } = req.params;
 
-    if (!otpToken || !otp)
-      return res.status(400).json({ error: "OTP token and OTP are required" });
+    if (!otp || !otpToken)
+      return res.status(400).json({ error: "OTP and token required" });
 
     const data = otpStore.get(otpToken);
-
     if (!data)
-      return res
-        .status(400)
-        .json({ error: "OTP not generated or expired session" });
+      return res.status(400).json({ error: "Invalid or expired session" });
 
     if (data.expiresAt < Date.now())
       return res.status(400).json({ error: "OTP expired" });
 
-    if (data.otp !== otp) return res.status(400).json({ error: "Invalid OTP" });
+    if (data.otp !== otp)
+      return res.status(400).json({ error: "Invalid OTP" });
 
     return res.json({
-      message: "OTP verified successfully",
-      email: data.email, // ⬅️ frontend now gets email automatically
+      message: "OTP verified successfully"
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -138,26 +187,129 @@ export const verifyOTP = async (req, res) => {
 };
 export const resetPassword = async (req, res) => {
   try {
-    const { otpToken, password } = req.body;
+    const { password } = req.body;
+    const { otpToken } = req.params;
 
     if (!otpToken || !password)
-      return res.status(400).json({ error: "Missing fields" });
+      return res.status(400).json({ error: "Token and password required" });
+
+    if (password.length < 8)
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 8 characters" });
 
     const data = otpStore.get(otpToken);
-    if (!data) return res.status(400).json({ error: "Invalid session" });
+    if (!data)
+      return res.status(400).json({ error: "Invalid or expired session" });
 
-    const user = await FacultySchema.findOne({ email: data.email });
-    if (!user) return res.status(400).json({ error: "User not found" });
+    if (data.expiresAt < Date.now()) {
+      otpStore.delete(otpToken);
+      return res.status(400).json({ error: "OTP expired" });
+    }
 
-    user.password = password;
+    let user;
+
+    switch (data.type) {
+      case "faculty":
+        user = await facultySchema.findOne({ email: data.email });
+          if (user) user.password = password;
+        break;
+
+      case "iqac":
+        user = await IqacSchema.findOne({ role: data.identifier });
+          console.log("Found IQAC user:", user);
+        if (user) user.passcode = password
+        break;
+
+      case "hod":
+        user = await hodSchema.findOne({ department: data.identifier });
+        if (user) user.password = password
+        break;
+
+      case "admin":
+        user = await adminSchema.findOne({});
+        if (user) user.password = password
+        break;
+    }
+
+    if (!user)
+      return res.status(404).json({ error: "User not found" });
     await user.save();
 
-    // Clear OTP session
     otpStore.delete(otpToken);
 
-    return res.json({ message: "Password reset successful!" });
+    return res.json({
+      message: "Password reset successful"
+    });
+
   } catch (error) {
-    console.error(error);
+    console.error("Reset password error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const changepassword = async (req, res) => {
+  try {
+    const { identifier, oldpassword, newpassword, type } = req.body;
+
+    if (!identifier || !oldpassword || !newpassword || !type)
+      return res.status(400).json({ error: "All fields are required" });
+
+    if (newpassword.length < 8)
+      return res
+        .status(400)
+        .json({ error: "New password must be at least 8 characters long" });
+
+    let Model, findCondition;
+
+    switch (type) {
+      case "faculty":
+        Model = facultySchema;
+        findCondition = { email: identifier };
+        break;
+
+      case "hod":
+        Model = hodSchema;
+        findCondition = { department: identifier };
+        break;
+
+      case "iqac":
+        Model = IqacSchema;
+        findCondition = { role: identifier };
+        break;
+
+    
+
+      default:
+        return res.status(400).json({ error: "Invalid user type" });
+    }
+
+    const user = await Model.findOne(findCondition);
+    if (!user)
+      return res.status(404).json({ error: "User not found" });
+
+    if (!user.authenticate(oldpassword))
+      return res.status(400).json({ error: "Old password incorrect" });
+    if (Model==IqacSchema)
+    {
+      user.passcode = newpassword;
+    await user.save();
+    }
+      else
+      {
+user.password = newpassword;
+    await user.save();
+      }
+    
+
+    return res.status(200).json({
+      message: "Password updated successfully"
+    });
+
+  } catch (error) {
+    console.error("Change password error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+export {forgotPassword}

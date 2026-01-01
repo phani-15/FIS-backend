@@ -4,6 +4,7 @@ import AdminSchema from "../modals/admin.js";
 import IqacSchema from "../modals/Iqac.js";
 import HodSchema from "../modals/hod.js";
 import AddDetailsSchema from "../modals/AddDetails.js"
+import { adminMail } from "../modals/mails.js";
 import jwt from "jsonwebtoken";
 import { expressjwt } from "express-jwt";
 
@@ -136,6 +137,36 @@ export const iqacRegister = async (req, res) => {
 };
 
 
+export const adminregister = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password || password.length < 8) {
+      return res.status(400).json({
+        error: "Password must be at least 8 characters"
+      });
+    }
+    const existingAdmin = await AdminSchema.findOne({});
+    if (existingAdmin) {
+      return res.status(400).json({
+        error: "Admin already exists"
+      });
+    }
+    const admin = new AdminSchema();
+    admin.password = password; 
+    await admin.save();
+    return res.status(201).json({
+      message: "Admin registered successfully",
+      adminEmail: adminMail.mail
+    });
+  } catch (error) {
+    console.error("Admin register error:", error);
+    return res.status(500).json({
+      error: "Server error"
+    });
+  }
+};
+
 //check user during registration middleware
 export const checkUser = async (req, res, next) => {
   const { email, phone } = req.body;
@@ -182,27 +213,39 @@ export const login = async (req, res) => {
   })
 };
 export const adminlogin = async (req, res) => {
-  const { passCode } = req.body;
-  const Admin = await AdminSchema.findOne({ passCode });
+  console.log("REQ BODY:", req.body);
 
-  if (!Admin) {
+  const passCode = req.body.passCode?.trim();
+
+  if (!passCode) {
+    return res.status(400).json({ error: "Passcode required" });
+  }
+
+  const admin = await AdminSchema.findOne({ passCode });
+
+  console.log("ADMIN FOUND:", admin);
+
+  if (!admin) {
     return res.status(400).json({
       error: "No member with this Credentials are found !",
     });
   }
-  const token = jwt.sign({ _id: Admin._id }, process.env.SECRET, {
-    algorithm: "HS256",
-  });
-  res.cookie("token", token, { expire: new Date() + 99999 });
+
+  const token = jwt.sign(
+    { _id: admin._id },
+    process.env.SECRET,
+    { algorithm: "HS256" }
+  );
 
   return res.json({
     token,
-    Admin: {
-      id: Admin._id,
-      passCode,
+    admin: {
+      _id: admin._id,
     },
   });
 };
+
+
 export const ofclogin = async (req, res) => {
   const { role, passcode } = req.body;
   const Iqac = await IqacSchema.findOne({ role });
@@ -311,6 +354,15 @@ export const canviewProfile = (req, res, next) => {
   next()
 }
 
-export const isAdmin = (req, res, next) => { };
+export const  isAdminAuthenticated = (req, res, next) => {
+  // Ensure both IDs are compared as strings
+  const checker = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
 
-//this needs to be seen another time !!
+  if (!checker) {
+    return res.status(400).json({
+      error: "You are not Authenticated !",
+    });
+  }
+
+  next();
+};

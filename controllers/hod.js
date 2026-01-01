@@ -2,6 +2,7 @@ import express from "express"
 import Hod from "../modals/hod.js"
 import PersonalSchema from "../modals/PersonalSchema.js"
 import Credentials from '../modals/AddDetails.js'
+
 export const gethodByID = async (req, res, next, id) => {
   try {
     const hod = await Hod.findById(id);
@@ -17,6 +18,8 @@ export const gethodByID = async (req, res, next, id) => {
   }
 };
 
+
+
 export const gethodDetails = async (req, res) => {
   try {
     const faculties = await PersonalSchema.find({ "personalData.department": req.profile.department })
@@ -27,16 +30,26 @@ export const gethodDetails = async (req, res) => {
     return res.status(500).json({ error: "Error fetching faculties", details: err.message });
   }
 }
-const parseDDMMYYYY = (str) => {
-  if (!str) return null;
-  const parts = str.split(":");
-  if (parts.length !== 3) return null;
+const parseDate = (value) => {
+  if (!value) return null;
 
-  const [dd, mm, yyyy] = parts.map(Number);
-  if (!dd || !mm || !yyyy) return null;
+  // 1️⃣ ISO / browser-supported formats (YYYY-MM-DD, full ISO, timestamps)
+  const iso = new Date(value);
+  if (!isNaN(iso.getTime())) return iso;
 
-  return new Date(yyyy, mm - 1, dd);
+  // 2️⃣ DD-MM-YYYY explicitly
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (match) {
+      const [, dd, mm, yyyy] = match;
+      return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    }
+  }
+
+  return null;
 };
+
+
 
 const extractDateFromRecord = (record) => {
   let yearFallback = null;
@@ -45,24 +58,32 @@ const extractDateFromRecord = (record) => {
     const lowerKey = key.toLowerCase();
     const value = record[key];
 
-    if (lowerKey.includes("date")) {
+    // 1️⃣ Handle date fields safely
+    if (lowerKey.includes("date") && typeof value === "string") {
+      // Try DD-MM-YYYY first
+      const parsed = parseDate(value);
+      if (parsed) return parsed;
+
+      // Try ISO / JS supported formats
       const d = new Date(value);
       if (!isNaN(d)) return d;
     }
 
+    // 2️⃣ Handle year fields
     if (lowerKey.includes("year")) {
-      if (typeof value === "string" && value.includes("-")) {
+      if (typeof value === "string") {
+        // "2019-2020"
         const y = parseInt(value.split("-")[0]);
         if (!isNaN(y)) yearFallback = new Date(y, 0, 1);
+      } else if (typeof value === "number") {
+        yearFallback = new Date(value, 0, 1);
       }
-
-      const y = parseInt(value);
-      if (!isNaN(y)) yearFallback = new Date(y, 0, 1);
     }
   }
 
   return yearFallback;
 };
+
 
 export const extractDetails = async (req, res) => {
   try {
@@ -89,8 +110,8 @@ export const extractDetails = async (req, res) => {
 
     console.log("👥 Faculty count:", faculties.length);
 
-    const fromDate = parseDDMMYYYY(dateFrom);
-    const toDate = parseDDMMYYYY(dateTo);
+    const fromDate = parseDate(dateFrom);
+    const toDate = parseDate(dateTo);
 
     console.log("📅 Parsed fromDate:", fromDate);
     console.log("📅 Parsed toDate:", toDate);
@@ -107,7 +128,7 @@ export const extractDetails = async (req, res) => {
       toDate.setHours(23, 59, 59, 999);
     }
 
-    const result = [];
+    const reports = [];
 
     // Step 2: Loop faculty → check credentials
     for (const faculty of faculties) {
@@ -167,16 +188,16 @@ export const extractDetails = async (req, res) => {
       });
 
       if (Object.keys(entry.reports).length > 0) {
-        result.push(entry);
+        reports.push(entry);
       }
     }
 
-    console.log("📊 Final result size:", result.length);
+    console.log("📊 Final reports size:", reports.length);
 
     return res.status(200).json({
       success: true,
-      totalFaculty: result.length,
-      data: result
+      totalFaculty: reports.length,
+      data: reports
     });
 
   } catch (error) {

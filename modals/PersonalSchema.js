@@ -19,24 +19,24 @@ const personalSchema = new mongoose.Schema({
         marital: { type: String, required: true },  
         name: { type: String, required: true },
         avatar: { type: String, required: true },
-        phone : { type: String,unique:true},
+        phone : { type: String},
     }, 
     education: {
         tenth: {
-            percentage: { type: String, required: true },
+            percentage: { type: String,},
             school: { type: String, required: true, trim: true },
             year: { type: String, required: true },
         },
         twelth: {
             college: { type: String, required: true, trim: true },
-            percentage: { type: String, required: true },
+            percentage: { type: String,  },
             type: {type:String, enum: ["Intermediate", "diploma"], required: true },
             year: { type: String, required: true },
         },
         degree: {
             college: { type: String, required: true, trim: true },
             degreeName: { type: String, required: true },
-            percentage: { type: String, required: true },
+            percentage: { type: String,},
             specialization: { type: String, required: true },
             title: { type: String, required: true },
             university: { type: String, required: true, trim: true },
@@ -45,7 +45,7 @@ const personalSchema = new mongoose.Schema({
         pg: {
             college: { type: String, required: true, trim: true },
             course: { type: String, required: true },
-            percentage: { type: String, required: true },
+            percentage: { type: String,  },
             specialization: { type: String, required: true },
             university : { type: String, required: true, trim: true },
             year: { type: String, required: true },
@@ -55,14 +55,14 @@ const personalSchema = new mongoose.Schema({
             department: { type: String, minchar: 2 },
             specialization: { type: String ,required:true},
             under_the_proffessor: { type: String },
-            year: { type: Number, max: new Date().getFullYear(), minchar: 4 }
+            year: { type: Number, minchar: 4 }
 
         }],
         postdoc: [{
             University: { type: String, minchar: 4 },
             specialization: { type: String },
             under_the_proffessor: { type: String },
-            year: { type: Number, max: new Date().getFullYear(), minchar: 4 }
+            year: { type: Number, minchar: 4 }
         }]
     },
     experience: [
@@ -70,19 +70,19 @@ const personalSchema = new mongoose.Schema({
             designation: { type: String, minchar: 2 },
             institute: { type: String, minchar: 4 },
             from: { type: Number, min: 1947 },
-            to: { type: Number, max: new Date().getFullYear() },
+            to: { type: String, },
         }
     ],
     administrativeService: [{
         designation: { type: String, minchar: 2 },
         from: { type: Number, min: 1947 },
-        to: { type: Number, max: new Date().getFullYear() }
+        to: { type: String,  }
     }],
     otherAdministrativeService: [{
         designation: { type: String, minchar: 2 },
         institute: { type: String, minchar: 4 },
         from: { type: Number, min: 1947 },
-        to: { type: String, max: new Date().getFullYear() }
+        to: { type: String, }
     }],
     credentials:{
         type:mongoose.Schema.Types.ObjectId,

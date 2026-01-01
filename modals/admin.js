@@ -1,6 +1,37 @@
 import mongoose from "mongoose";
-const adminSchema=new mongoose.Schema({
-    passCode:{type:String,required:true}
-})
+import { v4 } from "uuid";
+const { createHmac } = await import("node:crypto");
 
-export default mongoose.model("Admin",adminSchema)
+const adminSchema = new mongoose.Schema({
+  role: { type: String, default: "ADMIN" },
+  encry_password: { type: String, required: true },
+  salt: String
+});
+
+adminSchema.virtual("password")
+  .set(function(password){
+    this._password = password;
+    this.salt = v4();
+    this.encry_password = this.encryptPassword(password);
+  })
+  .get(function(){
+    return this._password;
+  });
+
+adminSchema.methods = {
+  authenticate: function(password){
+    return this.encryptPassword(password) === this.encry_password;
+  },
+  encryptPassword: function(password){
+    if(!password || !this.salt) return "";
+    try {
+      return createHmac('sha256', this.salt)
+        .update(password)
+        .digest('hex');
+    } catch {
+      return "";
+    }
+  }
+};
+
+export default mongoose.model("Admin", adminSchema);

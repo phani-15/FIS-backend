@@ -1,5 +1,3 @@
-// utils/dateParser.js
-
 export const parseDate = (value) => {
   if (!value || typeof value !== "string") return null;
 
@@ -17,9 +15,6 @@ export const parseDate = (value) => {
   const date = new Date(value);
   return isNaN(date) ? null : date;
 };
-
-// utils/dateFieldMap.js
-
 export const dateFieldMap = {
   patents: "year_of_published_granted",
   journal: "year_of_publication",

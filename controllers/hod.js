@@ -2,6 +2,7 @@ import express from "express"
 import Hod from "../modals/hod.js"
 import PersonalSchema from "../modals/PersonalSchema.js"
 import Credentials from '../modals/AddDetails.js'
+
 export const gethodByID = async (req, res, next, id) => {
   try {
     const hod = await Hod.findById(id);
@@ -17,6 +18,8 @@ export const gethodByID = async (req, res, next, id) => {
   }
 };
 
+
+
 export const gethodDetails = async (req, res) => {
   try {
     const faculties = await PersonalSchema.find({ "personalData.department": req.profile.department })
@@ -27,16 +30,28 @@ export const gethodDetails = async (req, res) => {
     return res.status(500).json({ error: "Error fetching faculties", details: err.message });
   }
 }
-const parseDDMMYYYY = (str) => {
-  if (!str) return null;
-  const parts = str.split(":");
-  if (parts.length !== 3) return null;
+const parseDate = (value) => {
+  if (!value) return null;
 
-  const [dd, mm, yyyy] = parts.map(Number);
-  if (!dd || !mm || !yyyy) return null;
+  // DD-MM-YYYY
+  if (typeof value === "string" && value.includes("-")) {
+    const parts = value.split("-");
+    if (parts[0].length === 2) {
+      const [dd, mm, yyyy] = parts.map(Number);
+      if (dd && mm && yyyy) {
+        return new Date(yyyy, mm - 1, dd);
+      }
+    }
+  }
 
-  return new Date(yyyy, mm - 1, dd);
+  // ISO / browser format
+  const d = new Date(value);
+  if (!isNaN(d)) return d;
+
+  return null;
 };
+
+
 
 const extractDateFromRecord = (record) => {
   let yearFallback = null;
@@ -45,24 +60,32 @@ const extractDateFromRecord = (record) => {
     const lowerKey = key.toLowerCase();
     const value = record[key];
 
-    if (lowerKey.includes("date")) {
+    // 1️⃣ Handle date fields safely
+    if (lowerKey.includes("date") && typeof value === "string") {
+      // Try DD-MM-YYYY first
+      const parsed = parseDate(value);
+      if (parsed) return parsed;
+
+      // Try ISO / JS supported formats
       const d = new Date(value);
       if (!isNaN(d)) return d;
     }
 
+    // 2️⃣ Handle year fields
     if (lowerKey.includes("year")) {
-      if (typeof value === "string" && value.includes("-")) {
+      if (typeof value === "string") {
+        // "2019-2020"
         const y = parseInt(value.split("-")[0]);
         if (!isNaN(y)) yearFallback = new Date(y, 0, 1);
+      } else if (typeof value === "number") {
+        yearFallback = new Date(value, 0, 1);
       }
-
-      const y = parseInt(value);
-      if (!isNaN(y)) yearFallback = new Date(y, 0, 1);
     }
   }
 
   return yearFallback;
 };
+
 
 export const extractDetails = async (req, res) => {
   try {
@@ -89,8 +112,8 @@ export const extractDetails = async (req, res) => {
 
     console.log("👥 Faculty count:", faculties.length);
 
-    const fromDate = parseDDMMYYYY(dateFrom);
-    const toDate = parseDDMMYYYY(dateTo);
+    const fromDate = parseDate(dateFrom);
+    const toDate = parseDate(dateTo);
 
     console.log("📅 Parsed fromDate:", fromDate);
     console.log("📅 Parsed toDate:", toDate);

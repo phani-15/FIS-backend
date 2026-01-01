@@ -1,5 +1,5 @@
 export const ofcMails = {
-  "Vice Principal": "viceprincipal@mail.com",
+  "Vice Principal": "slayking619@gmail.com",
   "Principal": "studentcse123456789@gmail.com",
   "IQAC Coordinator": "iqac@mail.com",
   "IQAC Director": "iqacdirecctor@gamil.com",

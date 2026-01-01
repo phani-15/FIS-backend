@@ -1,6 +1,8 @@
 import { createTransport } from "nodemailer";
 import facultySchema from "../modals/FacultySchema.js";
 import IqacSchema from '../modals/Iqac.js'
+import jwt from "jsonwebtoken";
+import { expressjwt } from "express-jwt";
 import hodSchema from '../modals/hod.js';
 import adminSchema from '../modals/admin.js'
 import crypto from "crypto";
@@ -50,6 +52,67 @@ export const sendmail = async (req, res) => {
     });
   }
 };
+
+// export const dreg = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const faculty = await facultySchema.create(req.body);
+
+//     if (!faculty) {
+//       return res.status(400).json({
+//         error: "Saving user failed",
+//       });
+//     }
+//     const token = jwt.sign(
+//       { id: faculty._id, email: faculty.email },
+//       process.env.SECRET,
+//       { expiresIn: "1h" }
+//     );
+
+//     const registerLink = `http://localhost:5173/register/${token}`;
+
+//     // 📧 Send mail
+//     await transporter.sendMail({
+//       from: process.env.EMAIL,
+//       to: faculty.email,
+//       subject: "Complete Your Registration",
+//       html: `
+//         <p>Hello,</p>
+//         <p>You have been registered in the Faculty Information System.</p>
+//         <p>Please click the button below to complete your registration:</p>
+
+//         <a href="${registerLink}"
+//            style="
+//              display:inline-block;
+//              padding:12px 20px;
+//              background:#4f46e5;
+//              color:#fff;
+//              text-decoration:none;
+//              border-radius:6px;
+//              font-weight:600;
+//            ">
+//            Complete Registration
+//         </a>
+//         <p>The password for your email is :${password}
+//         <p> <strong>Note:</strong>This password has been assigned as a default credential. For security reasons, you are advised to change your password immediately after logging in.</p>
+//         <p style="margin-top:12px;">
+//           This link is valid for <b>1 hour</b>.
+//         </p>
+//       `,
+//     });
+
+//     return res.status(200).json({
+//       msg: "Registration successful. Email sent!",
+//     });
+//   } catch (err) {
+//     console.error("Registration error:", err);
+//     return res.status(500).json({
+//       error: "Registration failed",
+//     });
+//   }
+// };
+
 
 const otpStore = new Map();
 const forgotPassword = async (req, res) => {
@@ -313,3 +376,8 @@ user.password = newpassword;
 };
 
 export {forgotPassword}
+
+export const sendEmail=()=>
+{
+  
+}

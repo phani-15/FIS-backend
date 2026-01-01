@@ -2,6 +2,7 @@ import express from "express"
 import {check} from "express-validator"
 import {login,register,adminlogin,hodlogin,hodregister,dreg} from "../controllers/auth.js"
 import { defaultArgs } from "puppeteer";
+
 import { forgotPassword,resetPassword,verifyOTP,sendmail, changepassword } from "../utils/nodemailer.js";
 import { upload } from "../utils/multer.js";
 import { iqacRegister,ofclogin } from "../controllers/auth.js";

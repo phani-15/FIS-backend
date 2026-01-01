@@ -7,7 +7,9 @@ const router=express.Router()
  
 router.param("hodId",gethodByID)
 router.get("/hod/:hodId",isSignedIn,isHodAuthenticated,gethodDetails);
+
 router.post("/hodreport/:hodId",isSignedIn,isHodAuthenticated,extractDetails);
+
 
 
 

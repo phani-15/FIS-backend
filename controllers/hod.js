@@ -33,20 +33,18 @@ export const gethodDetails = async (req, res) => {
 const parseDate = (value) => {
   if (!value) return null;
 
-  // DD-MM-YYYY
-  if (typeof value === "string" && value.includes("-")) {
-    const parts = value.split("-");
-    if (parts[0].length === 2) {
-      const [dd, mm, yyyy] = parts.map(Number);
-      if (dd && mm && yyyy) {
-        return new Date(yyyy, mm - 1, dd);
-      }
+  // 1️⃣ ISO / browser-supported formats (YYYY-MM-DD, full ISO, timestamps)
+  const iso = new Date(value);
+  if (!isNaN(iso.getTime())) return iso;
+
+  // 2️⃣ DD-MM-YYYY explicitly
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (match) {
+      const [, dd, mm, yyyy] = match;
+      return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
     }
   }
-
-  // ISO / browser format
-  const d = new Date(value);
-  if (!isNaN(d)) return d;
 
   return null;
 };
@@ -130,7 +128,7 @@ export const extractDetails = async (req, res) => {
       toDate.setHours(23, 59, 59, 999);
     }
 
-    const result = [];
+    const reports = [];
 
     // Step 2: Loop faculty → check credentials
     for (const faculty of faculties) {
@@ -190,16 +188,16 @@ export const extractDetails = async (req, res) => {
       });
 
       if (Object.keys(entry.reports).length > 0) {
-        result.push(entry);
+        reports.push(entry);
       }
     }
 
-    console.log("📊 Final result size:", result.length);
+    console.log("📊 Final reports size:", reports.length);
 
     return res.status(200).json({
       success: true,
-      totalFaculty: result.length,
-      data: result
+      totalFaculty: reports.length,
+      data: reports
     });
 
   } catch (error) {

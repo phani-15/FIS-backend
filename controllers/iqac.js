@@ -143,9 +143,8 @@ export const getReportDataForSome = async (req, res) => {
       path: "credentials",
       select: selectString
     });
-
     const results = faculties
-      .map(({ personalData, credentials }) => {
+      .map(({ _id,personalData, credentials }) => {
         const credentialsObj = credentials.toObject();
         const dateFiltered = filterCredentialsByDate(
           credentialsObj,
@@ -158,8 +157,9 @@ export const getReportDataForSome = async (req, res) => {
         return {
           name: personalData.name,
           role: personalData.designation,
-          department: personalData.department,
-          data: finalData
+          dept: personalData.department,
+          data: finalData,
+          id:_id.toString()
         };
       })
       .filter(Boolean);

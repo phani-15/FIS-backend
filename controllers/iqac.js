@@ -25,7 +25,7 @@ export const getiqacDetails = async (req, res) => {
 
     //rhis is only cause the frontend dev used to see this pretty annoying format 😭😮‍💨😮‍💨
     const result = faculties.map(({ user, _id, personalData }) => ({
-      _id,
+      _id:user.id,
       name: personalData.name,
       department: personalData.department,
       role: personalData.designation,
@@ -98,76 +98,76 @@ export const getReportDataForAll = async (req, res) => {
   }))
   res.json(results)
 }
-// export const getReportDataForSome= async (req, res) => {
-//   const {fields, subfields ,ids } = req.body
-//   const selectString = fields.join(" ")  //select the relveant fields
-//   const faculties = await PersonalSchema.find({_id:{$in:ids}} )
-//   .populate({ path: "credentials", select: selectString })    
-//   //filtering subfileds 
-//   const filterSubfields = (credentials, subfields) => {
-//     const result = {};
-//     for (const field in credentials) {
-//       const items = credentials[field];
-//       if (!subfields[field]) {
-//         result[field] = items;
-//         continue;
-//       }
-//       result[field] = items.map(item => {
-//         const filteredItem = {};
-//         for (const key of subfields[field]) {
-//           if (item[key] !== undefined) {
-//             filteredItem[key] = item[key];
-//           }
-//         }
-//         return filteredItem;
-//       });
-//     }
-//     return result;
-//   };
+export const getReportDataForSome= async (req, res) => {
+  const {fields, subfields ,ids } = req.body
+  const selectString = fields.join(" ")  //select the relveant fields
+  const faculties = await PersonalSchema.find({_id:{$in:ids}} )
+  .populate({ path: "credentials", select: selectString })    
+  //filtering subfileds 
+  const filterSubfields = (credentials, subfields) => {
+    const result = {};
+    for (const field in credentials) {
+      const items = credentials[field];
+      if (!subfields[field]) {
+        result[field] = items;
+        continue;
+      }
+      result[field] = items.map(item => {
+        const filteredItem = {};
+        for (const key of subfields[field]) {
+          if (item[key] !== undefined) {
+            filteredItem[key] = item[key];
+          }
+        }
+        return filteredItem;
+      });
+    }
+    return result;
+  };
 
-//   const results = faculties.map(({ personalData, credentials }) => ({
-//     name: personalData.name,
-//     role: personalData.designation,
-//     department: personalData.department,
-//     data: filterSubfields(credentials.toObject(), subfields)
-//   }))
-//   res.json(results)
-// }
-export const getReportDataForSome = async (req, res) => {
-  try {
-    const { fields, subfields, ids, from_date, to_date } = req.body;
-    const selectString = fields.join(" ");
-    const faculties = await PersonalSchema.find({
-      _id: { $in: ids }
-    }).populate({
-      path: "credentials",
-      select: selectString
-    });
+  const results = faculties.map(({ personalData, credentials }) => ({
+    name: personalData.name,
+    role: personalData.designation,
+    department: personalData.department,
+    data: filterSubfields(credentials.toObject(), subfields)
+  }))
+  res.json(results)
+}
+// export const getReportDataForSome = async (req, res) => {
+//   try {
+//     const { fields, subfields, ids, from_date, to_date } = req.body;
+//     const selectString = fields.join(" ");
+//     const faculties = await PersonalSchema.find({
+//       _id: { $in: ids }
+//     }).populate({
+//       path: "credentials",
+//       select: selectString
+//     });
 
-    const results = faculties
-      .map(({ personalData, credentials }) => {
-        const credentialsObj = credentials.toObject();
-        const dateFiltered = filterCredentialsByDate(
-          credentialsObj,
-          from_date,
-          to_date
-        );
-        const finalData = filterSubfields(dateFiltered, subfields);
-        //remove faculty with no valid data
-        if (Object.keys(finalData).length === 0) return null;
-        return {
-          name: personalData.name,
-          role: personalData.designation,
-          department: personalData.department,
-          data: finalData
-        };
-      })
-      .filter(Boolean);
-    res.json(results);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: "Failed to generate report"
-    });
-  }
-};
+//     const results = faculties
+//       .map(({ personalData, credentials }) => {
+//         const credentialsObj = credentials.toObject();
+//         const dateFiltered = filterCredentialsByDate(
+//           credentialsObj,
+//           from_date,
+//           to_date
+//         );
+//         const finalData = filterSubfields(dateFiltered, subfields);
+//         //remove faculty with no valid data
+//         if (Object.keys(finalData).length === 0) return null;
+//         return {
+//           name: personalData.name,
+//           role: personalData.designation,
+//           department: personalData.department,
+//           data: finalData
+//         };
+//       })
+//       .filter(Boolean);
+//     res.json(results);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({
+//       error: "Failed to generate report"
+//     });
+//   }
+// };

@@ -9,9 +9,7 @@ export const gethodByID = async (req, res, next, id) => {
     if (!hod) {
       return res.status(404).json({ error: "HOD not found" });
     }
-    req.profile = hod;
-
-    
+    req.profile = hod;    
     next();
   } catch (err) {
     return res.status(400).json({ error: "HOD not found" });

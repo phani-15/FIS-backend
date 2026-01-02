@@ -1,5 +1,6 @@
 import Admin from "../modals/admin.js"
 import express from 'express'
+import PersonalSchema from "../modals/PersonalSchema.js"
 export const getadminByID = async (req, res, next, id) => {
   try {
     const admin = await Admin.findById(id);
@@ -7,23 +8,29 @@ export const getadminByID = async (req, res, next, id) => {
       return res.status(404).json({ error: "admin not found" });
     }
     req.profile = admin;
-
-    
     next();
   } catch (err) {
     return res.status(400).json({ error: "admin not found" });
   }
 };
 
-export const printdet = (req, res) => {
-  return res.status(200).json({
-    success: true,
-    message: "Admin authenticated successfully",
-    admin: {
-      
-      _id: req.profile._id,
-      email: req.profile.email,
-    },
-  });
-};
+export const getAdminDetails = async (req, res) => {
+  try {
+    const faculties = await PersonalSchema
+      .find()
+      .populate({ path: "user", select: "email" }) 
+      .select("personalData.name personalData.department personalData.designation");
+
+    const result = faculties.map(({ user, _id, personalData }) => ({
+      id:user._id,  
+      name: personalData.name,
+      department: personalData.department,
+      role: personalData.designation,
+      email: user.email
+    }));
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({ error: "Error fetching faculties", details: err.message });
+  }
+}
 

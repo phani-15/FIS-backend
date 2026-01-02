@@ -18,4 +18,4 @@ export const uploadCred = multer({
 });
 
 
-export const fileFIelds=new Set(["document","sanctioning order","utilization certificate of final year","certificate","proceeding","allotment order"])
+export const fileFIelds=new Set(["document","sanctioning_order","utilization_certificate_final_year","certificate","proceeding","allotment_order"])

@@ -45,7 +45,6 @@ export const dateFieldMap = {
 export const filterCredentialsByDate = (credentials, from, to) => {
   const fromDate = parseDate(from);
   const toDate = parseDate(to);
-
   const result = {};
 
   for (const field in credentials) {
@@ -73,22 +72,22 @@ export const filterCredentialsByDate = (credentials, from, to) => {
 
     if (filtered.length) result[field] = filtered;
   }
-
   return result;
 };
 
 export const filterSubfields = (credentials, subfields) => {
   const result = {};
-  const normalizedSubFields=Object.fromEntries(Object.entries(subfields).map(([key,value])=>([key,value.map((name)=>(name.toLowerCase().replace(/[^\w]/g,"_")))])))  
+  const normalizedSubFields=Object.fromEntries(Object.entries(subfields).map(([key,value])=>([key,value.map((name)=>(name.toLowerCase().replace(/[^\w]/g,"_")))]))) 
+  console.log(credentials);
+  console.log(normalizedSubFields);
+
   for (const field in credentials) {
     const items = credentials[field];
     if (!items?.length) continue;
-
     if (!normalizedSubFields[field]) {
       result[field] = items;
       continue;
     }
-
     result[field] = items.map(item => {
       const filtered = {};
       for (const key of normalizedSubFields[field]) {
@@ -96,6 +95,7 @@ export const filterSubfields = (credentials, subfields) => {
           filtered[key] = item[key];
         }
       }
+      console.log(filtered);
       return filtered;
     });
   }

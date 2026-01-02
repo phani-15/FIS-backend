@@ -23,6 +23,12 @@ export const getDeatils=(req,res)=>{
     if (req.auth.role==="hod") {
         req.profile.role="hod"
     }
+    if (req.auth.role==="ofc") {
+        req.profile.role="ofc"
+    }
+    if (req.auth.role==="admin") {
+        req.profile.role="admin"
+    }
     res.json(req.profile)
 }
 

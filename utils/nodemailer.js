@@ -4,7 +4,7 @@ import IqacSchema from '../modals/Iqac.js'
 import hodSchema from '../modals/hod.js';
 import adminSchema from '../modals/admin.js'
 import crypto from "crypto";
-import { ofcMails, adminMail } from "../modals/mails.js";
+import { ofcMails, adminMail } from "./mails.js";
 
 const transporter = createTransport({
   service: "gmail",

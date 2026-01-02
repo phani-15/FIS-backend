@@ -8,11 +8,11 @@ const adminSchema = new mongoose.Schema({
   salt: String
 });
 
-adminSchema.virtual("password")
-  .set(function(password){
-    this._password = password;
+adminSchema.virtual("passCode")
+  .set(function(passCode){
+    this._password = passCode;
     this.salt = v4();
-    this.encry_password = this.encryptPassword(password);
+    this.encry_password = this.encryptPassword(passCode);
   })
   .get(function(){
     return this._password;

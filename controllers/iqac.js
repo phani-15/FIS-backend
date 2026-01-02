@@ -10,6 +10,7 @@ export const getiqacByID = async (req, res, next, id) => {
       return res.status(404).json({ error: "iqac not found" });
     }
     req.profile = iqac;
+    
     next();
   } catch (err) {
     return res.status(400).json({ error: "iqac not found" });
@@ -98,41 +99,6 @@ export const getReportDataForAll = async (req, res) => {
   }))
   res.json(results)
 }
-// export const getReportDataForSome= async (req, res) => {
-//   const {fields, subfields ,ids } = req.body
-//   const selectString = fields.join(" ")  //select the relveant fields
-//   const faculties = await PersonalSchema.find({_id:{$in:ids}} )
-//   .populate({ path: "credentials", select: selectString })    
-//   //filtering subfileds 
-//   const filterSubfields = (credentials, subfields) => {
-//     const result = {};
-//     for (const field in credentials) {
-//       const items = credentials[field];
-//       if (!subfields[field]) {
-//         result[field] = items;
-//         continue;
-//       }
-//       result[field] = items.map(item => {
-//         const filteredItem = {};
-//         for (const key of subfields[field]) {
-//           if (item[key] !== undefined) {
-//             filteredItem[key] = item[key];
-//           }
-//         }
-//         return filteredItem;
-//       });
-//     }
-//     return result;
-//   };
-
-//   const results = faculties.map(({ personalData, credentials }) => ({
-//     name: personalData.name,
-//     role: personalData.designation,
-//     department: personalData.department,
-//     data: filterSubfields(credentials.toObject(), subfields)
-//   }))
-//   res.json(results)
-// }
 export const getReportDataForSome = async (req, res) => {
   try {
     const { fields, subfields, ids, from_date, to_date } = req.body;

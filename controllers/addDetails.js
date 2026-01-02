@@ -15,22 +15,15 @@ export const getCredentialById = async (req, res, next, id) => {
 export const createCredential = async (req, res) => {
     const { group, subcategory, formdata } = req.body
     const parsedData = JSON.parse(formdata)
-    console.log(parsedData);
-    const uploadedFile = req.files?.["Document"]?.[0];
-    console.log(uploadedFile);
-    if (uploadedFile) {
-        // find which file-related key exists in parsedData
-        const matchingKey = Object.keys(parsedData).find(key =>
-            fileFIelds.has(key)
-        );
-        console.log("the document fields was :",matchingKey);
-        console.log("the field name was :",uploadedFile.filename);
-        
-        if (matchingKey) {
-            parsedData[matchingKey] = uploadedFile.filename;
+    console.log(req.files);
+    if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+            const fieldName = file.fieldname; 
+            if (fileFIelds.has(fieldName)) {
+                parsedData[fieldName] = file.filename;
+            }
         }
     }
-
     const updatedcred = await Credential.findByIdAndUpdate(req.credential._id.toString(), {
         $push: { [subcategory ? subcategory : group]: parsedData }
     }, { new: true })
@@ -43,7 +36,7 @@ export const createCredential = async (req, res) => {
 }
 
 export const getCredDetails = (req, res) => {
-    const sendingObj = {}
+    const sendingObj = {role:req.auth.role}
     for (const [key, value] of Object.entries(req.credential.toObject())) {
         if (Array.isArray(value) && value.length > 0) {
             sendingObj[key] = value

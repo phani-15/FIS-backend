@@ -4,7 +4,7 @@ import AdminSchema from "../modals/admin.js";
 import IqacSchema from "../modals/Iqac.js";
 import HodSchema from "../modals/hod.js";
 import AddDetailsSchema from "../modals/AddDetails.js"
-import { adminMail } from "../modals/mails.js";
+import { adminMail } from "../utils/mails.js";
 import jwt from "jsonwebtoken";
 import { expressjwt } from "express-jwt";
 
@@ -22,7 +22,6 @@ export const register = async (req, res) => {
     // Save faculty
     const faculty = await FacultySchema.find({email:loginData.email})
     // Save personal info
-
     const details = await AddDetailsSchema.create({
       user: faculty[0]._id.toString()
     })
@@ -140,20 +139,13 @@ export const iqacRegister = async (req, res) => {
 export const adminregister = async (req, res) => {
   try {
     const { password } = req.body;
-
     if (!password || password.length < 8) {
       return res.status(400).json({
         error: "Password must be at least 8 characters"
       });
     }
-    const existingAdmin = await AdminSchema.findOne({});
-    if (existingAdmin) {
-      return res.status(400).json({
-        error: "Admin already exists"
-      });
-    }
     const admin = new AdminSchema();
-    admin.password = password; 
+    admin.passCode = password; 
     await admin.save();
     return res.status(201).json({
       message: "Admin registered successfully",
@@ -167,19 +159,6 @@ export const adminregister = async (req, res) => {
   }
 };
 
-//check user during registration middleware
-export const checkUser = async (req, res, next) => {
-  const { email, phone } = req.body;
-  if (
-    (await FacultySchema.findOne(email)) ||
-    (await FacultySchema.findOne(phone))
-  ) {
-    return res.status(400).json({
-      error: " user with the given credentials exist go to sign in ",
-    });
-  }
-  next();
-};
 export const login = async (req, res) => {
   const { email, password } = req.body;
   const user = await FacultySchema.findOne({ email });
@@ -197,10 +176,10 @@ export const login = async (req, res) => {
   const token = jwt.sign({ _id: user._id, role: "user" }, process.env.SECRET, {
     algorithm: "HS256",
   });
-
+  
   res.cookie("token", token, {
     httpOnly: true,
-    secure: true, // must be true in production, but works on localhost with chrome flags
+    secure: false, // must be true in production, but works on localhost with chrome flags
     sameSite: "none", // required for cross-site cookies
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
@@ -213,18 +192,17 @@ export const login = async (req, res) => {
   })
 };
 export const adminlogin = async (req, res) => {
-  console.log("REQ BODY:", req.body);
-
   const passCode = req.body.passCode?.trim();
-
   if (!passCode) {
     return res.status(400).json({ error: "Passcode required" });
   }
+  const admin = await AdminSchema.findOne({ role:"ADMIN"});
 
-  const admin = await AdminSchema.findOne({ passCode });
-
-  console.log("ADMIN FOUND:", admin);
-
+  if (!admin.authenticate(passCode)){
+    return res.status(400).json({
+      error: "Passcode didnt matched !",
+    });
+  }
   if (!admin) {
     return res.status(400).json({
       error: "No member with this Credentials are found !",
@@ -232,7 +210,7 @@ export const adminlogin = async (req, res) => {
   }
 
   const token = jwt.sign(
-    { _id: admin._id },
+    { _id: admin._id ,role: "admin" },
     process.env.SECRET,
     { algorithm: "HS256" }
   );
@@ -260,7 +238,7 @@ export const ofclogin = async (req, res) => {
       error: "password didnt match"
     })
   }
-  const token = jwt.sign({ _id: Iqac._id }, process.env.SECRET, {
+  const token = jwt.sign({ _id: Iqac._id ,role: "ofc"}, process.env.SECRET, {
     algorithm: "HS256",
   });
   res.cookie("token", token, { expire: new Date() + 99999 });
@@ -320,10 +298,10 @@ export const isAuthenticated = (req, res, next) => {
   }
   next();
 };
+
 export const isHodAuthenticated = (req, res, next) => {
   // Ensure both IDs are compared as strings
   const checker = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
-
   if (!checker) {
     return res.status(400).json({
       error: "You are not Authenticated !",
@@ -346,7 +324,9 @@ export const isiqacAuthenticated = (req, res, next) => {
 export const canviewProfile = (req, res, next) => {
   const isOwner = req.profile.user._id.toString() === req.auth._id.toString()
   const isHod = req.auth.role === "hod"
-  if (!isOwner && !isHod) {
+  const isofc = req.auth.role === "ofc"
+  const isadmin = req.auth.role === "admin"
+  if (!isOwner && !isHod && !isofc && !isadmin) {
     return res.status(400).json({
       error: "your access was denied !"
     })

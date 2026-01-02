@@ -26,7 +26,7 @@ export const getiqacDetails = async (req, res) => {
 
     //rhis is only cause the frontend dev used to see this pretty annoying format 😭😮‍💨😮‍💨
     const result = faculties.map(({ user, _id, personalData }) => ({
-      _id,
+      _id:user.id,
       name: personalData.name,
       department: personalData.department,
       role: personalData.designation,

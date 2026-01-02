@@ -7,7 +7,8 @@ import AddDetailsSchema from "../modals/AddDetails.js"
 import { adminMail } from "../utils/mails.js";
 import jwt from "jsonwebtoken";
 import { expressjwt } from "express-jwt";
-
+import { createTransport } from "nodemailer";
+import { ofcMails,adminMail } from "../modals/mails.js";
 
 export const register = async (req, res) => {
   try {
@@ -47,25 +48,78 @@ export const register = async (req, res) => {
     });
   }
 };
+const transporter = createTransport({
+  service: "gmail",
+  auth: {
+    user: `${process.env.EMAIL}`,
+    pass: `${process.env.EMAIL_PASSWORD}`,
+  },
+});
 
-export const dreg=async (req,res)=>{
-  const {email,password}=req.body;
-  const faculty=await FacultySchema.create(req.body)
-  if (!faculty) {
-    return res.status(400).json({
-      error:"saving user failed"
-    })
+export const dreg = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const faculty = await FacultySchema.create(req.body);
+
+    if (!faculty) {
+      return res.status(400).json({
+        error: "Saving user failed",
+      });
+    }
+    const token = jwt.sign(
+      { id: faculty._id, email: faculty.email },
+      process.env.SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const registerLink = `http://localhost:5173/register/${token}`;
+
+    // 📧 Send mail
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: faculty.email,
+      subject: "Complete Your Registration",
+      html: `
+        <p>Hello,</p>
+        <p>You have been registered in the Faculty Information System.</p>
+        <p>Please click the button below to complete your registration:</p>
+
+        <a href="${registerLink}"
+           style="
+             display:inline-block;
+             padding:12px 20px;
+             background:#4f46e5;
+             color:#fff;
+             text-decoration:none;
+             border-radius:6px;
+             font-weight:600;
+           ">
+           Complete Registration
+        </a>
+        <p>The password for your email is :${password}
+        <p> <strong>Note:</strong>This password has been assigned as a default credential. For security reasons, you are advised to change your password immediately after logging in.</p>
+        <p style="margin-top:12px;">
+          This link is valid for <b>24 hours</b>.
+        </p>
+
+      <p>
+  Regards,<br />
+  <strong>Faculty Information System Team</strong>
+</p>
+      `,
+    });
+
+    return res.status(200).json({
+      msg: "Registration successful. Email sent!",
+    });
+  } catch (err) {
+    console.error("Registration error:", err);
+    return res.status(500).json({
+      error: "Registration failed",
+    });
   }
-  const token=jwt.sign({email:email},process.env.SECRET,{expiresIn:"24h"})
-  return res.json({
-    msg: "Registration Successful!!",
-      user: {
-        id: faculty._id,
-        email: faculty.email,
-        token:token
-      },  
-  })
-}
+};
 export const hodregister = async (req, res) => {
   try {
     const { email, department, password } = req.body;
@@ -87,11 +141,52 @@ export const hodregister = async (req, res) => {
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: faculty.email,
+      subject: "Registration Notice",
+      html: `
+       <p>Hello,</p>
 
+<p>
+  You have been successfully registered in the <strong>Faculty Information System</strong>.
+</p>
+
+<p>
+  Your temporary login password is:
+  <br />
+  <strong>${password}</strong>
+</p>
+
+<p>
+  To access the Faculty Information System, please click the link below:
+</p>
+
+<p>
+  <a href="https://fis@jntugv.edu.in" target="_blank">
+    Click here to visit the website
+  </a>
+</p>
+
+<p>
+  <strong>Note:</strong> This password has been assigned as a default credential for your department account.
+  For security reasons, you are strongly advised to change your password immediately after logging in.
+</p>
+
+<p>
+  Regards,<br />
+  <strong>Faculty Information System Team</strong>
+</p>
+
+        
+      `,
+    });
     // Send response
     return res.json({
-      msg: "Registration Successful!!",
+    
       user: {
+        message:"Registration Succesful",
+        token:token,
         id: faculty._id,
         email: faculty.email,
       },
@@ -104,11 +199,28 @@ export const hodregister = async (req, res) => {
   }
 };
 export const iqacRegister = async (req, res) => {
-
   try {
-    const iqac = await IqacSchema.create(req.body).catch(err => {
-      console.log(err);
-    })
+    const { role, passcode } = req.body;
+
+    if (!role || !passcode) {
+      return res.status(400).json({ error: "Role and passcode are required" });
+    }
+
+    if (!ofcMails[role]) {
+      return res.status(400).json({ error: "Invalid role selected" });
+    }
+
+    const existingRole = await IqacSchema.findOne({ role });
+    if (existingRole) {
+      return res.status(409).json({
+        error: `${role} account already exists`,
+      });
+    }
+
+    const iqac = new IqacSchema({ role });
+    iqac.passcode = passcode;
+    await iqac.save();
+
     const token = jwt.sign(
       { _id: iqac._id, role: iqac.role },
       process.env.SECRET,
@@ -120,20 +232,62 @@ export const iqacRegister = async (req, res) => {
       secure: true,
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-    return res.json({
-      msg: "OFC Registration Successful!!",
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: ofcMails[role],
+      subject: "Registration Notice",
+      html: `
+        <p>Hello,</p>
+
+        <p>
+          You have been successfully registered in the <strong>Faculty Information System</strong>.
+        </p>
+
+        <p>
+          Your temporary login password is:
+          <br />
+          <strong>${passcode}</strong>
+        </p>
+
+        <p>
+          To access the Faculty Information System, please click the link below:
+        </p>
+
+        <p>
+          <a href="https://fis.jntugv.edu.in" target="_blank">
+            Click here to visit the website
+          </a>
+        </p>
+
+        <p>
+          <strong>Note:</strong> This password has been assigned as a default credential.
+          You are strongly advised to change your password immediately after logging in.
+        </p>
+
+        <p>
+          Regards,<br />
+          <strong>Faculty Information System Team</strong>
+        </p>
+      `,
+    });
+
+    return res.status(201).json({
+      msg: "OFC Registration Successful",
+      token:token,
       user: {
         id: iqac._id,
         role: iqac.role,
       },
     });
   } catch (error) {
-    return res.status(400).json({
-      error: "There was an error saving OFC data",
+    return res.status(500).json({
+      error: "Internal server error",
     });
   }
 };
+
 
 
 export const adminregister = async (req, res) => {
@@ -346,3 +500,4 @@ export const  isAdminAuthenticated = (req, res, next) => {
 
   next();
 };
+

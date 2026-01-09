@@ -131,7 +131,6 @@ export const getReportDataForSome = async (req, res) => {
       .filter(Boolean);
     res.json(results);
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       error: "Failed to generate report"
     });

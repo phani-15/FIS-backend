@@ -15,7 +15,6 @@ export const getCredentialById = async (req, res, next, id) => {
 export const createCredential = async (req, res) => {
     const { group, subcategory, formdata } = req.body
     const parsedData = JSON.parse(formdata)
-    console.log(req.files);
     if (req.files && req.files.length > 0) {
         for (const file of req.files) {
             const fieldName = file.fieldname; 

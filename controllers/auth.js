@@ -4,11 +4,10 @@ import AdminSchema from "../modals/admin.js";
 import IqacSchema from "../modals/Iqac.js";
 import HodSchema from "../modals/hod.js";
 import AddDetailsSchema from "../modals/AddDetails.js"
-import { adminMail } from "../utils/mails.js";
 import jwt from "jsonwebtoken";
 import { expressjwt } from "express-jwt";
 import { createTransport } from "nodemailer";
-import { ofcMails,adminMail } from "../modals/mails.js";
+import { ofcMails,adminMail } from "../utils/mails.js";
 
 export const register = async (req, res) => {
   try {
@@ -32,7 +31,6 @@ export const register = async (req, res) => {
       credentials: details._id
     });
     await personalSchema.save();
-    console.log("Personal info saved successfully");
     // Send response
     return res.json({
       msg: "Registration Successful!!",
@@ -42,7 +40,6 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error during registration:", error);
     return res.status(400).json({
       error: "There was an error saving data",
     });
@@ -114,7 +111,6 @@ export const dreg = async (req, res) => {
       msg: "Registration successful. Email sent!",
     });
   } catch (err) {
-    console.error("Registration error:", err);
     return res.status(500).json({
       error: "Registration failed",
     });
@@ -126,9 +122,7 @@ export const hodregister = async (req, res) => {
 
     // Save faculty
     const faculty = await HodSchema.create({ email, department, password });
-    console.log(faculty);
 
-    console.log("Successfully saved HOD !!");
     // Generate JWT token
     const token = jwt.sign({ _id: faculty._id }, process.env.SECRET, {
       algorithm: "HS256",
@@ -192,7 +186,6 @@ export const hodregister = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error during registration:", error);
     return res.status(400).json({
       error: "There was an error saving data",
     });
@@ -306,7 +299,6 @@ export const adminregister = async (req, res) => {
       adminEmail: adminMail.mail
     });
   } catch (error) {
-    console.error("Admin register error:", error);
     return res.status(500).json({
       error: "Server error"
     });
@@ -443,7 +435,6 @@ export const isSignedIn = expressjwt({
 });
 
 export const isAuthenticated = (req, res, next) => {
-  // console.log(req.profile._id.toString === req.auth._id);
   const checker = req.profile && req.auth && req.profile.user._id.toString() == req.auth._id;
   if (!checker) {
     return res.status(400).json({

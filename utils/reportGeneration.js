@@ -78,8 +78,6 @@ export const filterCredentialsByDate = (credentials, from, to) => {
 export const filterSubfields = (credentials, subfields) => {
   const result = {};
   const normalizedSubFields=Object.fromEntries(Object.entries(subfields).map(([key,value])=>([key,value.map((name)=>(name.toLowerCase().replace(/[^\w]/g,"_")))]))) 
-  console.log(credentials);
-  console.log(normalizedSubFields);
 
   for (const field in credentials) {
     const items = credentials[field];
@@ -95,7 +93,6 @@ export const filterSubfields = (credentials, subfields) => {
           filtered[key] = item[key];
         }
       }
-      console.log(filtered);
       return filtered;
     });
   }

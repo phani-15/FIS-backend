@@ -45,8 +45,6 @@ export const sendmail = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Mail error:", error);
-
     return res.status(500).json({
       error: "Failed to send email",
     });
@@ -217,7 +215,6 @@ switch (type) {
     });
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -244,7 +241,6 @@ export const verifyOTP = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -280,7 +276,6 @@ export const resetPassword = async (req, res) => {
 
       case "iqac":
         user = await IqacSchema.findOne({ role: data.identifier });
-          console.log("Found IQAC user:", user);
         if (user) user.passcode = password
         break;
 
@@ -306,7 +301,6 @@ export const resetPassword = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Reset password error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -370,7 +364,6 @@ user.password = newpassword;
     });
 
   } catch (error) {
-    console.error("Change password error:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };

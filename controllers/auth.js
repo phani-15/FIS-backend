@@ -4,10 +4,10 @@ import AdminSchema from "../modals/admin.js";
 import IqacSchema from "../modals/Iqac.js";
 import HodSchema from "../modals/hod.js";
 import AddDetailsSchema from "../modals/AddDetails.js"
+import {ofcMails, adminMail } from "../utils/mails.js";
 import jwt from "jsonwebtoken";
 import { expressjwt } from "express-jwt";
 import { createTransport } from "nodemailer";
-import { ofcMails,adminMail } from "../utils/mails.js";
 
 export const register = async (req, res) => {
   try {

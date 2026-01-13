@@ -45,7 +45,7 @@ export const getFacultyforReport = async (req, res) => {
     .populate({ path: "credentials", select: selectString })
   const returnNonEmptyFields=(credentials)=>{
     for (const key in fields){
-      if(!credentials[fields[key]].length>0){
+      if(!credentials[fields[key]]){
         return false;
       }}
     return true;
@@ -60,7 +60,6 @@ export const getFacultyforReport = async (req, res) => {
   } 
 ))
   res.json(results)
-
 }
 
 export const getReportDataForAll = async (req, res) => {
@@ -108,8 +107,8 @@ export const getReportDataForSome = async (req, res) => {
     }).populate({
       path: "credentials",
       select: selectString
-    });
-    const results = faculties
+    });    
+     const results = faculties
       .map(({ _id,personalData, credentials }) => {
         const credentialsObj = credentials.toObject();
         const dateFiltered = filterCredentialsByDate(
@@ -118,7 +117,6 @@ export const getReportDataForSome = async (req, res) => {
           to_date
         );
         const finalData = filterSubfields(dateFiltered, subfields);
-        //remove faculty with no valid data
         if (Object.keys(finalData).length === 0) return null;
         return {
           name: personalData.name,
@@ -131,8 +129,8 @@ export const getReportDataForSome = async (req, res) => {
       .filter(Boolean);
     res.json(results);
   } catch (err) {
-    res.status(500).json({
-      error: "Failed to generate report"
+    res.status(400).json({
+      error: err
     });
   }
 };

@@ -1,6 +1,7 @@
 import expess from "express"
 import Credential from "../modals/AddDetails.js"
 import { fileFIelds } from "../utils/multer.js"
+import { login } from "./auth.js"
 
 export const getCredentialById = async (req, res, next, id) => {
     const cred = await Credential.findById(id)
@@ -15,11 +16,12 @@ export const getCredentialById = async (req, res, next, id) => {
 export const createCredential = async (req, res) => {
     const { group, subcategory, formdata } = req.body
     const parsedData = JSON.parse(formdata)
+
     if (req.files && req.files.length > 0) {
         for (const file of req.files) {
-            const fieldName = file.fieldname; 
-            if (fileFIelds.has(fieldName)) {
-                parsedData[fieldName] = file.filename;
+            const baseField = /^(document|proceeding|allotment_order)(__\d+)?$/.test(file.fieldname) ? file.fieldname.split("__")[0] : file.fieldname;
+            if (fileFIelds.has(baseField)) {
+                (parsedData[baseField] = file.filename);
             }
         }
     }
@@ -35,7 +37,7 @@ export const createCredential = async (req, res) => {
 }
 
 export const getCredDetails = (req, res) => {
-    const sendingObj = {role:req.auth.role}
+    const sendingObj = { role: req.auth.role }
     for (const [key, value] of Object.entries(req.credential.toObject())) {
         if (Array.isArray(value) && value.length > 0) {
             sendingObj[key] = value

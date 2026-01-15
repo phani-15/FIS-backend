@@ -24,7 +24,7 @@ export const getiqacDetails = async (req, res) => {
       .populate({ path: "user", select: "email" })  //this seems annoying to me bbut it works for some reason
       .select("personalData.name personalData.department personalData.designation");
 
-    //rhis is only cause the frontend dev used to see this pretty annoying format 😭😮‍💨😮‍💨
+    //this is only cause the frontend dev used to see this pretty annoying format 😭😮‍💨😮‍💨
     const result = faculties.map(({ user, _id, personalData }) => ({
       _id:user.id,
       name: personalData.name,

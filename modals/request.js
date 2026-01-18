@@ -7,7 +7,7 @@ const requestSchema = new mongoose.Schema(
         isPending: { type: Boolean, default: true },
         originalProfile: {},
         updatedFields: {},
-        model: { type: String, enum: ['Personal', 'Credentials'], required: true, default: 'Personal' }
+        model: {type: String,default: "Credentials",immutable: true,enum: ["Credentials"]}
     }, { timestamps: true }
 )
 

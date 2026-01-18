@@ -56,9 +56,7 @@ const transporter = createTransport({
 export const dreg = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const faculty = await FacultySchema.create(req.body);
-
     if (!faculty) {
       return res.status(400).json({
         error: "Saving user failed",
@@ -67,11 +65,9 @@ export const dreg = async (req, res) => {
     const token = jwt.sign(
       { id: faculty._id, email: faculty.email },
       process.env.SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
-
     const registerLink = `http://localhost:5173/register/${token}`;
-
     // 📧 Send mail
     await transporter.sendMail({
       from: process.env.EMAIL,
@@ -112,7 +108,7 @@ export const dreg = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({
-      error: "Registration failed",
+      error: `Registration failed cause :${err}`,
     });
   }
 };

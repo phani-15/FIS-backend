@@ -121,40 +121,40 @@ const forgotPassword = async (req, res) => {
       return res.status(400).json({ error: "Type and identifier are required" });
 
     let user;
-let email;
+    let email;
 
-switch (type) {
-  case "faculty":
-    user = await facultySchema.findOne({ email: identifier });
-    if (!user) return res.status(404).json({ error: "Faculty not found" });
-    email = user.email;
-    break;
+    switch (type) {
+      case "faculty":
+        user = await facultySchema.findOne({ email: identifier });
+        if (!user) return res.status(404).json({ error: "Faculty not found" });
+        email = user.email;
+        break;
 
-  case "iqac":
-    user = await IqacSchema.findOne({ role: identifier });
-    if (!user) return res.status(404).json({ error: "IQAC role not found" });
+      case "iqac":
+        user = await IqacSchema.findOne({ role: identifier });
+        if (!user) return res.status(404).json({ error: "IQAC role not found" });
 
-    email = ofcMails[identifier];
-    if (!email)
-      return res.status(404).json({ error: "IQAC email not configured" });
-    break;
+        email = ofcMails[identifier];
+        if (!email)
+          return res.status(404).json({ error: "IQAC email not configured" });
+        break;
 
-  case "hod":
-    user = await hodSchema.findOne({ department: identifier });
-    if (!user) return res.status(404).json({ error: "HOD not found" });
-    email = user.email;
-    break;
+      case "hod":
+        user = await hodSchema.findOne({ department: identifier });
+        if (!user) return res.status(404).json({ error: "HOD not found" });
+        email = user.email;
+        break;
 
-  case "admin":
-    user = await adminSchema.findOne({});
-    if (!user) return res.status(404).json({ error: "Admin not found" });
+      case "admin":
+        user = await adminSchema.findOne({});
+        if (!user) return res.status(404).json({ error: "Admin not found" });
 
-    email = adminMail.mail;
-    break;
+        email = adminMail.mail;
+        break;
 
-  default:
-    return res.status(400).json({ error: "Invalid user type" });
-}
+      default:
+        return res.status(400).json({ error: "Invalid user type" });
+    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpToken = crypto.randomBytes(20).toString("hex");
@@ -271,7 +271,7 @@ export const resetPassword = async (req, res) => {
     switch (data.type) {
       case "faculty":
         user = await facultySchema.findOne({ email: data.email });
-          if (user) user.password = password;
+        if (user) user.password = password;
         break;
 
       case "iqac":
@@ -335,7 +335,7 @@ export const changepassword = async (req, res) => {
         findCondition = { role: identifier };
         break;
 
-    
+
 
       default:
         return res.status(400).json({ error: "Invalid user type" });
@@ -347,17 +347,15 @@ export const changepassword = async (req, res) => {
 
     if (!user.authenticate(oldpassword))
       return res.status(400).json({ error: "Old password incorrect" });
-    if (Model==IqacSchema)
-    {
+    if (Model == IqacSchema) {
       user.passcode = newpassword;
-    await user.save();
+      await user.save();
     }
-      else
-      {
-user.password = newpassword;
-    await user.save();
-      }
-    
+    else {
+      user.password = newpassword;
+      await user.save();
+    }
+
 
     return res.status(200).json({
       message: "Password updated successfully"
@@ -368,9 +366,33 @@ user.password = newpassword;
   }
 };
 
-export {forgotPassword}
+export { forgotPassword }
 
-export const sendEmail=()=>
-{
-  
-}
+export const sendEmail = () => { }
+
+export const sendDataUpdateEmail = async (userName, department, updatedFields) => {
+  try {
+    const fieldsList = Object.keys(updatedFields).join(", ");
+
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: "unknownmister132@gmail.com",
+      subject: `Data Update Notification - ${userName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #007bff;">Profile Update Applied</h2>
+          <p><strong>Faculty Name:</strong> ${userName}</p>
+          <p><strong>Department:</strong> ${department}</p>
+          <p><strong>Updated Fields:</strong> ${fieldsList}</p>
+          <p>The changes have been successfully applied to the database.</p>
+          <hr />
+          <p><small>Faculty Information System Automated Notification</small></p>
+        </div>
+      `,
+    });
+    console.log("Update notification email sent.");
+  } catch (error) {
+    console.error("Failed to send update notification email:", error);
+    // Don't block the actual update if email fails
+  }
+};

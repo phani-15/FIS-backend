@@ -55,7 +55,9 @@ const transporter = createTransport({
 
 export const dreg = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password ,name } = req.body;
+    console.log("data came was :",req.body);
+    
     const faculty = await FacultySchema.create(req.body);
     if (!faculty) {
       return res.status(400).json({
@@ -74,32 +76,43 @@ export const dreg = async (req, res) => {
       to: email,
       subject: "Complete Your Registration",
       html: `
-        <p>Hello,</p>
-        <p>You have been registered in the Faculty Information System.</p>
-        <p>Please click the button below to complete your registration:</p>
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #334155; line-height: 1.6; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+  <div style="background: #4f46e5; height: 8px;"></div>
+  <div style="padding: 40px;">    
+    <p>Hello, <strong>${name ?? "Faculty Member"}</strong>,</p>
+    <p>Your profile has been successfully provisioned within the <b>Faculty Information System (FIS)</b>. You now have access to Create an Account on Faculy information system.</p>
+    <p>To initialize your account and verify your identity, please click the button below:</p>
 
-        <a href="${registerLink}"
-           style="
-             display:inline-block;
-             padding:12px 20px;
-             background:#4f46e5;
-             color:#fff;
-             text-decoration:none;
-             border-radius:6px;
-             font-weight:600;
-           ">
-           Complete Registration
-        </a>
-        <p>The password for your email is :${password}
-        <p> <strong>Note:</strong>This password has been assigned as a default credential. For security reasons, you are advised to change your password immediately after logging in.</p>
-        <p style="margin-top:12px;">
-          This link is valid for <b>24 hours</b>.
-        </p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${registerLink}"
+         style="display:inline-block; padding:14px 28px; background:#4f46e5; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);">
+         Go to Registration
+      </a>
+    </div>
 
-      <p>
-  Regards,<br />
-  <strong>Faculty Information System Team</strong>
-</p>
+    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; text-align: center;">
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Default Credential/Password</p>
+      <code style="font-family: monospace; font-size: 20px; color: #4f46e5; font-weight: bold;">${password}</code>
+    </div>
+
+    <p style="font-size: 14px; margin-top: 24px;">
+      <span style="color: #e11d48; font-weight: 600;">Security Protocol:</span> 
+      This is a system-generated password. For data integrity, you are required to update your credentials upon first login. This link will expire in <b>24 hours</b>.
+    </p>
+
+    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 32px 0;">
+
+    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">
+      Regards,<br />
+      <strong style="color: #475569;">Faculty Information System Team</strong><br />
+     JNTUGV-CEV
+    </p>
+  </div>
+  
+  <div style="background: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #94a3b8;">
+    This is an automated system message. Please do not reply directly to this email.
+  </div>
+</div>
       `,
     }).catch((err) => {j  
       return res.status(500).json({

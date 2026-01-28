@@ -370,13 +370,13 @@ export { forgotPassword }
 
 export const sendEmail = () => { }
 
-export const sendDataUpdateEmail = async (userName, department, updatedFields) => {
+export const sendDataUpdateEmail = async (hodEmail,userName, department, updatedFields) => {
   try {
     const fieldsList = Object.keys(updatedFields).join(", ");
 
     await transporter.sendMail({
       from: process.env.EMAIL,
-      to: "unknownmister132@gmail.com",
+      to: `${hodEmail}`,
       subject: `Data Update Notification - ${userName}`,
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">

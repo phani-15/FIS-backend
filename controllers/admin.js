@@ -3,6 +3,7 @@ import express from 'express'
 import PersonalSchema from "../modals/PersonalSchema.js"
 import Request from "../modals/request.js";
 import Credentials from "../modals/AddDetails.js";
+import Hod from "../modals/hod.js"
 import { sendDataUpdateEmail } from "../utils/nodemailer.js";
 export const getadminByID = async (req, res, next, id) => {
   try {
@@ -133,9 +134,9 @@ export const acceptRequests = async (req, res) => {
     // Safe navigation for name/dept in case personalData is missing structure
     const userName = personalDoc.personalData?.name || "Unknown Faculty";
     const userDept = personalDoc.personalData?.department || "Unknown Department";
-    
+    const hodEmail=await Hod.findOne({}) 
 
-    await sendDataUpdateEmail(userName, userDept, updatedFields);
+    await sendDataUpdateEmail(hodEmail,userName, userDept, updatedFields);
 
     // 7. Delete Request
     await Request.findByIdAndDelete(rid);

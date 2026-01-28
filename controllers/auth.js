@@ -63,7 +63,7 @@ export const dreg = async (req, res) => {
       });
     }
     const token = jwt.sign(
-      { id: faculty._id, email: faculty.email },
+      { id: faculty._id, email:email },
       process.env.SECRET,
       { expiresIn: "24h" }
     );
@@ -71,7 +71,7 @@ export const dreg = async (req, res) => {
     // 📧 Send mail
     await transporter.sendMail({
       from: process.env.EMAIL,
-      to: faculty.email,
+      to: email,
       subject: "Complete Your Registration",
       html: `
         <p>Hello,</p>
@@ -101,7 +101,11 @@ export const dreg = async (req, res) => {
   <strong>Faculty Information System Team</strong>
 </p>
       `,
-    });
+    }).catch((err) => {
+      return res.status(500).json({
+        error: `Failed to send email via nodemailer: ${err.message}`,
+      });
+    })
 
     return res.status(200).json({
       msg: "Registration successful. Email sent!",

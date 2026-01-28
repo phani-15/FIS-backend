@@ -101,7 +101,7 @@ export const dreg = async (req, res) => {
   <strong>Faculty Information System Team</strong>
 </p>
       `,
-    }).catch((err) => {
+    }).catch((err) => {j  
       return res.status(500).json({
         error: `Failed to send email via nodemailer: ${err.message}`,
       });

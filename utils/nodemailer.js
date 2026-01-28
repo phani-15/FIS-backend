@@ -384,7 +384,7 @@ export const sendDataUpdateEmail = async (userName, department, updatedFields) =
           <p><strong>Faculty Name:</strong> ${userName}</p>
           <p><strong>Department:</strong> ${department}</p>
           <p><strong>Updated Fields:</strong> ${fieldsList}</p>
-          <p>The changes have been successfully applied to the database.</p>
+          <p>The changes have been successfully applied corss check Once </p>
           <hr />
           <p><small>Faculty Information System Automated Notification</small></p>
         </div>

@@ -36,11 +36,12 @@ export const getAdminDetails = async (req, res) => {
 }
 
 export const getRequests = async (req, res) => {
-  if (req.profile.role === "ADMIN") {
+  if (req.profile.role === "ADMIN") { 
     const requests = await Request.find()
       .populate("user", "email")
       .populate("personal", "personalData.name personalData.department personalData.designation");
-    res.json(requests);
+      console.log(requests);
+      res.json(requests);
   }
   else {
     return res.status(400).json({
@@ -132,6 +133,7 @@ export const acceptRequests = async (req, res) => {
     // Safe navigation for name/dept in case personalData is missing structure
     const userName = personalDoc.personalData?.name || "Unknown Faculty";
     const userDept = personalDoc.personalData?.department || "Unknown Department";
+    
 
     await sendDataUpdateEmail(userName, userDept, updatedFields);
 

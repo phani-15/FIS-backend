@@ -1,8 +1,9 @@
 import mongoose from "mongoose"
 import Personal from "./PersonalSchema.js"
+import Faculty from "./FacultySchema.js"
 const requestSchema = new mongoose.Schema(
     {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: Personal, required: true },  //this is personal id we populate from  user to get email
+        user: { type: mongoose.Schema.Types.ObjectId, ref: Faculty, required: true },  //this is personal id we populate from  user to get email
         personal: { type: mongoose.Schema.Types.ObjectId, ref: Personal, required: true },
         isPending: { type: Boolean, default: true },
         originalProfile: {},

@@ -120,7 +120,7 @@ export const addRequests = async (req, res) => {
             }
 
             const request = await Request.create({
-                user: personalId,     // Using Personal ID as per schema ref
+                user: userId,     // Using Personal ID as per schema ref
                 personal: personalId, // Using Personal ID
                 originalProfile: originalProfile,
                 updatedFields: updatedFields,

@@ -158,15 +158,14 @@ const forgotPassword = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpToken = crypto.randomBytes(20).toString("hex");
-
-    otpStore.set(otpToken, {
+    console.log(otpToken)
+   otpStore.set(otpToken, {
       type,
       identifier,
       email,
       otp,
       expiresAt: Date.now() + 10 * 60 * 1000
     });
-
     await transporter.sendMail({
       from: process.env.EMAIL,
       to: email,
@@ -248,7 +247,7 @@ export const resetPassword = async (req, res) => {
   try {
     const { password } = req.body;
     const { otpToken } = req.params;
-
+    console.log(otpToken)
     if (!otpToken || !password)
       return res.status(400).json({ error: "Token and password required" });
 
@@ -257,9 +256,10 @@ export const resetPassword = async (req, res) => {
         .status(400)
         .json({ error: "Password must be at least 8 characters" });
 
-    const data = otpStore.get(otpToken);
+    const data = otpStore.get(otpToken)
+    console.log(data)
     if (!data)
-      return res.status(400).json({ error: "Invalid or expired session" });
+      return res.status(400).json({ error:"otpstore data was not found !" });
 
     if (data.expiresAt < Date.now()) {
       otpStore.delete(otpToken);
@@ -267,11 +267,13 @@ export const resetPassword = async (req, res) => {
     }
 
     let user;
-
     switch (data.type) {
       case "faculty":
         user = await facultySchema.findOne({ email: data.email });
-        if (user) user.password = password;
+
+if (user) {
+  user.password = password; 
+}
         break;
 
       case "iqac":
@@ -281,7 +283,7 @@ export const resetPassword = async (req, res) => {
 
       case "hod":
         user = await hodSchema.findOne({ department: data.identifier });
-        if (user) user.password = password
+        if (user) user.password = password 
         break;
 
       case "admin":
@@ -289,19 +291,60 @@ export const resetPassword = async (req, res) => {
         if (user) user.password = password
         break;
     }
-
-    if (!user)
+console.log("user was:",user)
+    if (!user)  
       return res.status(404).json({ error: "User not found" });
     await user.save();
 
-    otpStore.delete(otpToken);
+    // otpStore.delete(otpToken);
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: data.email,
+      subject: "Password Reset Successful - Faculty Information System",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; color: #333;">
+  <h2 style="color: #28a745;">Faculty Information System</h2>
 
+  <p>Dear Faculty Member,</p>
+
+  <p>
+    This is to inform you that the password for your
+    <strong>Faculty Information System</strong> account has been
+    <strong>successfully changed</strong>.
+  </p>
+
+    <div style="background: #f4f6f9; padding: 15px; border-left: 4px solid #28a745; margin: 20px 0;">
+    <h3 style="margin: 0; text-align: center; color: #28a745;">
+      ✅ Password Updated Successfully
+    </h3>
+  </div>
+
+  <p>
+    You can now log in using your new password.
+    If you did <strong>not</strong> perform this action, please contact the support team immediately
+    to secure your account.
+  </p>
+
+  <br />
+
+  <p>
+    Regards,<br>
+    <strong>Faculty Information System Support Team</strong>
+  </p>
+
+  <hr style="margin-top: 30px;">
+  <small style="color: #777;">
+    This is an automated message. Please do not reply to this email.
+  </small>
+</div>
+      `,
+    });
     return res.json({
       message: "Password reset successful"
     });
 
   } catch (error) {
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: `Server error ${error}` });
   }
 };
 
@@ -367,6 +410,7 @@ export const changepassword = async (req, res) => {
 };
 
 export { forgotPassword }
+
 
 export const sendEmail = () => { }
 

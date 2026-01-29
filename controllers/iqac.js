@@ -127,7 +127,7 @@ export const getReportDataForSome = async (req, res) => {
         };
       })
       .filter(Boolean);
-    res.json(results);
+    res.json(results); 
   } catch (err) {
     res.status(400).json({
       error: err

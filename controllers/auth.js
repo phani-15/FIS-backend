@@ -56,7 +56,6 @@ const transporter = createTransport({
 export const dreg = async (req, res) => {
   try {
     const { email, password ,name } = req.body;
-    console.log("data came was :",req.body);
     
     const faculty = await FacultySchema.create(req.body);
     if (!faculty) {
